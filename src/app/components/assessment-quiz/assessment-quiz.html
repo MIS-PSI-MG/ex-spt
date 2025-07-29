@@ -152,7 +152,7 @@
       </mat-card-header>
       <mat-card-content>
         <div
-          *ngFor="let section of assessmentResults()?.sections"
+          *ngFor="let section of assessmentResults()?.sections; let last = last"
           class="section-result-item"
         >
           <div class="section-header">
