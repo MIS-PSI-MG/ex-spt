@@ -33,6 +33,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBarModule, MatSnackBar } from "@angular/material/snack-bar";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatListModule } from "@angular/material/list";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { Observable } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
@@ -75,6 +76,7 @@ import {
     MatSnackBarModule,
     MatDialogModule,
     MatProgressSpinnerModule,
+    MatListModule,
   ],
   templateUrl: "./checklist-editor.html",
   styleUrl: "./checklist-editor.css",
@@ -220,14 +222,25 @@ export class ChecklistEditor implements OnInit, OnDestroy {
     return questionControl.get("type")?.value || QuestionType.STANDARD;
   }
 
-  getQuestionTypeLabel(type: QuestionType): string {
+  protected getQuestionTypeLabel(type: QuestionType): string {
     switch (type) {
       case QuestionType.STANDARD:
         return "Standard Question";
       case QuestionType.DATA_CONTROL:
-        return "Data Control";
+        return "Data Control Question";
       default:
         return "Unknown";
+    }
+  }
+
+  protected getQuestionTypeColor(type: QuestionType): string {
+    switch (type) {
+      case QuestionType.STANDARD:
+        return "primary";
+      case QuestionType.DATA_CONTROL:
+        return "accent";
+      default:
+        return "basic";
     }
   }
 

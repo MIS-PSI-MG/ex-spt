@@ -1,374 +1,613 @@
 <div class="checklist-editor-container">
-  <div class="editor-header">
-    <h2>{{ isEditMode() ? "Edit Checklist" : "Create New Checklist" }}</h2>
-    <div class="header-actions">
-      <button type="button" class="btn btn-secondary" (click)="cancel()">
+  <!-- Header -->
+  <mat-card appearance="outlined" class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="header-icon"
+          >{{ isEditMode() ? 'edit' : 'add' }}</mat-icon
+        >
+        {{ isEditMode() ? "Edit Checklist" : "Create New Checklist" }}
+      </mat-card-title>
+      <mat-card-subtitle>
+        {{ isEditMode() ? "Modify checklist details and structure" : "Create a
+        new health program assessment checklist" }}
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-actions align="end">
+      <button mat-button color="primary" (click)="cancel()">
+        <mat-icon>cancel</mat-icon>
         Cancel
       </button>
       <button
-        type="button"
-        class="btn btn-primary"
+        mat-raised-button
+        color="primary"
         [disabled]="!checklistForm.valid || checklistService.loading()"
         (click)="save()"
       >
+        <mat-icon
+          >{{ checklistService.loading() ? 'hourglass_empty' : 'save'
+          }}</mat-icon
+        >
         {{ checklistService.loading() ? "Saving..." : "Save" }}
       </button>
-    </div>
-  </div>
+    </mat-card-actions>
+  </mat-card>
 
-  @if (checklistService.error()) {
-  <div class="alert alert-error">
-    {{ checklistService.error() }}
-    <button
-      type="button"
-      class="close-btn"
-      (click)="checklistService.clearError()"
-    >
-      ×
-    </button>
-  </div>
-  } @if (validationResult().errors.length > 0) {
-  <div class="alert alert-error">
-    <h4>Validation Errors:</h4>
-    <ul>
-      @for (error of validationResult().errors; track error) {
-      <li>{{ error }}</li>
-      }
-    </ul>
-  </div>
-  } @if (validationResult().warnings.length > 0) {
-  <div class="alert alert-warning">
-    <h4>Warnings:</h4>
-    <ul>
-      @for (warning of validationResult().warnings; track warning) {
-      <li>{{ warning }}</li>
-      }
-    </ul>
-  </div>
-  }
+  <!-- Error Messages -->
+  <mat-card
+    *ngIf="checklistService.error()"
+    class="error-card"
+    appearance="outlined"
+  >
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <div>
+          <h3>Error</h3>
+          <p>{{ checklistService.error() }}</p>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="checklistService.clearError()">
+        <mat-icon>close</mat-icon>
+        Dismiss
+      </button>
+    </mat-card-actions>
+  </mat-card>
 
+  <!-- Validation Errors -->
+  <mat-card
+    *ngIf="validationResult().errors.length > 0"
+    class="validation-error-card"
+    appearance="outlined"
+  >
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon color="warn">warning</mat-icon>
+        Validation Errors
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-list>
+        <mat-list-item *ngFor="let error of validationResult().errors">
+          <mat-icon matListItemIcon color="warn">error</mat-icon>
+          <div matListItemTitle>{{ error }}</div>
+        </mat-list-item>
+      </mat-list>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Validation Warnings -->
+  <mat-card
+    *ngIf="validationResult().warnings.length > 0"
+    class="validation-warning-card"
+    appearance="outlined"
+  >
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon color="accent">info</mat-icon>
+        Warnings
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-list>
+        <mat-list-item *ngFor="let warning of validationResult().warnings">
+          <mat-icon matListItemIcon color="accent">warning</mat-icon>
+          <div matListItemTitle>{{ warning }}</div>
+        </mat-list-item>
+      </mat-list>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Main Form -->
   <form [formGroup]="checklistForm" class="checklist-form">
     <!-- Basic Information -->
-    <div class="form-section">
-      <h3>Basic Information</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="healthProgram">Health Program *</label>
-          <select
-            id="healthProgram"
-            formControlName="healthProgram"
-            class="form-control"
-            [class.error]="isFieldInvalid('healthProgram')"
-          >
-            <option value="">Select a program</option>
-            @for (program of availableHealthPrograms(); track program) {
-            <option [value]="program">{{ program }}</option>
-            }
-          </select>
-          @if (isFieldInvalid("healthProgram")) {
-          <div class="field-error">Health program is required</div>
-          }
-        </div>
+    <mat-card appearance="outlined" class="form-section-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Basic Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Health Program *</mat-label>
+            <mat-select formControlName="healthProgram" required>
+              <mat-option value="">Select a program</mat-option>
+              <mat-option
+                *ngFor="let program of availableHealthPrograms()"
+                [value]="program"
+              >
+                {{ program }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="isFieldInvalid('healthProgram')">
+              Health program is required
+            </mat-error>
+          </mat-form-field>
 
-        <div class="form-group">
-          <label for="organizationalLevel">Organizational Level *</label>
-          <select
-            id="organizationalLevel"
-            formControlName="organizationalLevel"
-            class="form-control"
-            [class.error]="isFieldInvalid('organizationalLevel')"
-          >
-            <option value="">Select a level</option>
-            @for (level of availableOrganizationalLevels(); track level) {
-            <option [value]="level">{{ level }}</option>
-            }
-          </select>
-          @if (isFieldInvalid("organizationalLevel")) {
-          <div class="field-error">Organizational level is required</div>
-          }
-        </div>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Organizational Level *</mat-label>
+            <mat-select formControlName="organizationalLevel" required>
+              <mat-option value="">Select a level</mat-option>
+              <mat-option
+                *ngFor="let level of availableOrganizationalLevels()"
+                [value]="level"
+              >
+                {{ level }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="isFieldInvalid('organizationalLevel')">
+              Organizational level is required
+            </mat-error>
+          </mat-form-field>
 
-        <div class="form-group">
-          <label for="department">Department *</label>
-          <select
-            id="department"
-            formControlName="department"
-            class="form-control"
-            [class.error]="isFieldInvalid('department')"
-          >
-            <option value="">Select a department</option>
-            @for (department of availableDepartments(); track department) {
-            <option [value]="department">{{ department }}</option>
-            }
-          </select>
-          @if (isFieldInvalid("department")) {
-          <div class="field-error">Department is required</div>
-          }
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Department *</mat-label>
+            <mat-select formControlName="department" required>
+              <mat-option value="">Select a department</mat-option>
+              <mat-option
+                *ngFor="let department of availableDepartments()"
+                [value]="department"
+              >
+                {{ department }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="isFieldInvalid('department')">
+              Department is required
+            </mat-error>
+          </mat-form-field>
         </div>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
 
     <!-- Sections -->
-    <div class="form-section">
-      <div class="section-header">
-        <h3>Sections</h3>
-        <button type="button" class="btn btn-primary" (click)="addSection()">
+    <mat-card appearance="outlined" class="sections-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>folder</mat-icon>
+          Sections
+        </mat-card-title>
+        <mat-card-subtitle>
+          Define the main sections of your checklist
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-actions align="end">
+        <button mat-raised-button color="primary" (click)="addSection()">
+          <mat-icon>add</mat-icon>
           Add Section
         </button>
-      </div>
+      </mat-card-actions>
 
-      <div formArrayName="sections" class="sections-container">
-        @for ( sectionControl of sectionsArray.controls; track sectionControl;
-        let sectionIndex = $index ) {
-        <div [formGroupName]="sectionIndex" class="section-card">
-          <div class="section-card-header">
-            <h4>Section {{ sectionIndex + 1 }}</h4>
-            <button
-              type="button"
-              class="btn btn-danger btn-sm"
-              (click)="removeSection(sectionIndex)"
+      <mat-card-content>
+        <div formArrayName="sections" class="sections-container">
+          <mat-accordion
+            *ngIf="sectionsArray.controls.length > 0"
+            class="sections-accordion"
+          >
+            <mat-expansion-panel
+              *ngFor="let sectionControl of sectionsArray.controls; track: sectionControl; let sectionIndex = index"
+              [formGroupName]="sectionIndex"
+              class="section-panel"
             >
-              Remove
-            </button>
-          </div>
-
-          <div class="form-grid">
-            <div class="form-group">
-              <label [for]="'section-title-' + sectionIndex">Title *</label>
-              <input
-                [id]="'section-title-' + sectionIndex"
-                type="text"
-                formControlName="title"
-                class="form-control"
-                [class.error]="
-                    isSectionFieldInvalid(sectionIndex, 'title')
-                  "
-              />
-            </div>
-
-            <div class="form-group">
-              <label [for]="'section-score-' + sectionIndex">Score *</label>
-              <input
-                [id]="'section-score-' + sectionIndex"
-                type="number"
-                formControlName="score"
-                class="form-control"
-                min="0"
-                [class.error]="
-                    isSectionFieldInvalid(sectionIndex, 'score')
-                  "
-              />
-            </div>
-
-            <div class="form-group">
-              <label [for]="'section-maxScore-' + sectionIndex"
-                >Max Score (Auto-calculated)</label
-              >
-              <input
-                [id]="'section-maxScore-' + sectionIndex"
-                type="number"
-                formControlName="maxScore"
-                class="form-control"
-                readonly
-                [class.readonly]="true"
-              />
-            </div>
-          </div>
-
-          <!-- Questions -->
-          <div class="questions-container">
-            <div class="questions-header">
-              <h5>Questions</h5>
-              <div class="question-actions">
-                <button
-                  type="button"
-                  class="btn btn-secondary btn-sm"
-                  (click)="
-                      addQuestion(sectionIndex, QuestionType.STANDARD)
-                    "
-                >
-                  Add Standard Question
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-secondary btn-sm"
-                  (click)="
-                      addQuestion(sectionIndex, QuestionType.DATA_CONTROL)
-                    "
-                >
-                  Add Data Control
-                </button>
-              </div>
-            </div>
-
-            <div formArrayName="questions">
-              @for ( questionControl of getQuestionsArray(sectionIndex)
-              .controls; track questionControl; let questionIndex = $index ) {
-              <div [formGroupName]="questionIndex" class="question-card">
-                <div class="question-header">
-                  <h6>
-                    {{ getQuestionTypeLabel( getQuestionType(sectionIndex,
-                    questionIndex) ) }} - Question {{ questionIndex + 1 }}
-                  </h6>
-                  <button
-                    type="button"
-                    class="btn btn-danger btn-sm"
-                    (click)="
-                          removeQuestion(sectionIndex, questionIndex)
-                        "
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon>list_alt</mat-icon>
+                  <span>Section {{ sectionIndex + 1 }}</span>
+                  <mat-chip
+                    *ngIf="sectionControl.get('title')?.value"
+                    color="primary"
+                    variant="outlined"
                   >
-                    Remove
+                    {{ sectionControl.get('title')?.value }}
+                  </mat-chip>
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ getQuestionsArray(sectionIndex).controls.length }}
+                  questions
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <!-- Section Form Fields -->
+              <div class="section-content">
+                <div class="section-header-actions">
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="removeSection(sectionIndex)"
+                    matTooltip="Remove Section"
+                  >
+                    <mat-icon>delete</mat-icon>
                   </button>
                 </div>
 
-                <!-- Standard Question Fields -->
-                @if ( getQuestionType(sectionIndex, questionIndex) ===
-                QuestionType.STANDARD ) {
-                <div class="standard-question-fields">
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label>Title *</label>
-                      <input
-                        type="text"
-                        formControlName="title"
-                        class="form-control"
-                      />
+                <div class="form-grid">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Section Title *</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      formControlName="title"
+                      required
+                    />
+                    <mat-error
+                      *ngIf="isSectionFieldInvalid(sectionIndex, 'title')"
+                    >
+                      Section title is required
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Current Score</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="score"
+                      min="0"
+                    />
+                    <mat-hint>Current achieved score</mat-hint>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Maximum Score</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="maxScore"
+                      readonly
+                    />
+                    <mat-hint>Auto-calculated from questions</mat-hint>
+                  </mat-form-field>
+                </div>
+
+                <!-- Questions Section -->
+                <div class="questions-section">
+                  <div class="questions-header">
+                    <h4>
+                      <mat-icon>help_outline</mat-icon>
+                      Questions
+                    </h4>
+                    <div class="question-actions">
+                      <button
+                        mat-button
+                        color="primary"
+                        (click)="addQuestion(sectionIndex, QuestionType.STANDARD)"
+                      >
+                        <mat-icon>add</mat-icon>
+                        Standard Question
+                      </button>
+                      <button
+                        mat-button
+                        color="accent"
+                        (click)="addQuestion(sectionIndex, QuestionType.DATA_CONTROL)"
+                      >
+                        <mat-icon>add</mat-icon>
+                        Data Control
+                      </button>
                     </div>
-                    <div class="form-group">
-                      <label>Score *</label>
-                      <input
-                        type="number"
-                        formControlName="score"
-                        class="form-control"
-                        min="0"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>Max Score (Auto-calculated)</label>
-                      <input
-                        type="number"
-                        formControlName="maxScore"
-                        class="form-control"
-                        readonly
-                      />
-                    </div>
+                  </div>
+
+                  <div formArrayName="questions" class="questions-container">
+                    <mat-card
+                      *ngFor="let questionControl of getQuestionsArray(sectionIndex).controls; track: questionControl; let questionIndex = index"
+                      [formGroupName]="questionIndex"
+                      class="question-card"
+                      appearance="outlined"
+                    >
+                      <mat-card-header>
+                        <mat-card-title>
+                          <mat-chip
+                            [color]="getQuestionTypeColor(getQuestionType(sectionIndex, questionIndex))"
+                            variant="filled"
+                          >
+                            {{
+                            getQuestionTypeLabel(getQuestionType(sectionIndex,
+                            questionIndex)) }}
+                          </mat-chip>
+                          <span>Question {{ questionIndex + 1 }}</span>
+                        </mat-card-title>
+                        <mat-card-subtitle
+                          *ngIf="questionControl.get('title')?.value"
+                        >
+                          {{ questionControl.get('title')?.value }}
+                        </mat-card-subtitle>
+                      </mat-card-header>
+
+                      <mat-card-actions align="end">
+                        <button
+                          mat-icon-button
+                          color="warn"
+                          (click)="removeQuestion(sectionIndex, questionIndex)"
+                          matTooltip="Remove Question"
+                        >
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </mat-card-actions>
+
+                      <mat-card-content>
+                        <!-- Standard Question Fields -->
+                        <div
+                          *ngIf="getQuestionType(sectionIndex, questionIndex) === QuestionType.STANDARD"
+                          class="question-fields"
+                        >
+                          <div class="form-grid">
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field full-width"
+                            >
+                              <mat-label>Question Title *</mat-label>
+                              <input
+                                matInput
+                                type="text"
+                                formControlName="title"
+                                required
+                              />
+                              <mat-error>Question title is required</mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field"
+                            >
+                              <mat-label>Current Score</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="score"
+                                min="0"
+                              />
+                              <mat-hint
+                                >Current score for this question</mat-hint
+                              >
+                            </mat-form-field>
+
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field"
+                            >
+                              <mat-label>Maximum Score</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="maxScore"
+                                readonly
+                              />
+                              <mat-hint>Maximum possible score</mat-hint>
+                            </mat-form-field>
+                          </div>
+                        </div>
+
+                        <!-- Data Control Question Fields -->
+                        <div
+                          *ngIf="getQuestionType(sectionIndex, questionIndex) === QuestionType.DATA_CONTROL"
+                          class="question-fields"
+                        >
+                          <div class="form-grid">
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field full-width"
+                            >
+                              <mat-label>Question Title *</mat-label>
+                              <input
+                                matInput
+                                type="text"
+                                formControlName="title"
+                                required
+                              />
+                              <mat-error>Question title is required</mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field"
+                            >
+                              <mat-label>Current Score</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="score"
+                                min="0"
+                              />
+                              <mat-hint>Current score</mat-hint>
+                            </mat-form-field>
+
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field"
+                            >
+                              <mat-label>Maximum Score</mat-label>
+                              <input
+                                matInput
+                                type="number"
+                                formControlName="maxScore"
+                                readonly
+                              />
+                              <mat-hint>Maximum possible score</mat-hint>
+                            </mat-form-field>
+
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field"
+                            >
+                              <mat-label>Indicator *</mat-label>
+                              <input
+                                matInput
+                                type="text"
+                                formControlName="indicator"
+                                required
+                              />
+                              <mat-hint>Data indicator name</mat-hint>
+                              <mat-error>Indicator is required</mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field
+                              appearance="outline"
+                              class="form-field"
+                            >
+                              <mat-label>Month *</mat-label>
+                              <input
+                                matInput
+                                type="month"
+                                formControlName="month"
+                                required
+                              />
+                              <mat-error>Month is required</mat-error>
+                            </mat-form-field>
+                          </div>
+
+                          <!-- Data Source Group -->
+                          <mat-card
+                            formGroupName="dataSource"
+                            class="data-group-card"
+                            appearance="outlined"
+                          >
+                            <mat-card-header>
+                              <mat-card-title>
+                                <mat-icon>source</mat-icon>
+                                Data Source
+                              </mat-card-title>
+                            </mat-card-header>
+                            <mat-card-content>
+                              <div class="form-grid">
+                                <mat-form-field
+                                  appearance="outline"
+                                  class="form-field"
+                                >
+                                  <mat-label>Source Name *</mat-label>
+                                  <input
+                                    matInput
+                                    type="text"
+                                    formControlName="name"
+                                    required
+                                  />
+                                  <mat-error>Source name is required</mat-error>
+                                </mat-form-field>
+
+                                <mat-form-field
+                                  appearance="outline"
+                                  class="form-field"
+                                >
+                                  <mat-label>Source Value *</mat-label>
+                                  <input
+                                    matInput
+                                    type="number"
+                                    formControlName="value"
+                                    required
+                                  />
+                                  <mat-error
+                                    >Source value is required</mat-error
+                                  >
+                                </mat-form-field>
+                              </div>
+                            </mat-card-content>
+                          </mat-card>
+
+                          <!-- Data Count Group -->
+                          <mat-card
+                            formGroupName="dataCount"
+                            class="data-group-card"
+                            appearance="outlined"
+                          >
+                            <mat-card-header>
+                              <mat-card-title>
+                                <mat-icon>numbers</mat-icon>
+                                Data Count
+                              </mat-card-title>
+                            </mat-card-header>
+                            <mat-card-content>
+                              <div class="form-grid">
+                                <mat-form-field
+                                  appearance="outline"
+                                  class="form-field"
+                                >
+                                  <mat-label>Count Name *</mat-label>
+                                  <input
+                                    matInput
+                                    type="text"
+                                    formControlName="name"
+                                    required
+                                  />
+                                  <mat-error>Count name is required</mat-error>
+                                </mat-form-field>
+
+                                <mat-form-field
+                                  appearance="outline"
+                                  class="form-field"
+                                >
+                                  <mat-label>Count Value *</mat-label>
+                                  <input
+                                    matInput
+                                    type="number"
+                                    formControlName="value"
+                                    required
+                                  />
+                                  <mat-error>Count value is required</mat-error>
+                                </mat-form-field>
+                              </div>
+                            </mat-card-content>
+                          </mat-card>
+
+                          <!-- Data Difference Checkbox -->
+                          <div class="checkbox-section">
+                            <mat-checkbox formControlName="hasDataDifference">
+                              Has Data Difference
+                            </mat-checkbox>
+                          </div>
+                        </div>
+                      </mat-card-content>
+                    </mat-card>
+
+                    <!-- Empty Questions State -->
+                    <mat-card
+                      *ngIf="getQuestionsArray(sectionIndex).controls.length === 0"
+                      class="empty-questions-card"
+                      appearance="outlined"
+                    >
+                      <mat-card-content>
+                        <div class="empty-state">
+                          <mat-icon class="empty-icon">help_outline</mat-icon>
+                          <h4>No Questions Added</h4>
+                          <p>
+                            Add questions to this section using the buttons
+                            above.
+                          </p>
+                        </div>
+                      </mat-card-content>
+                    </mat-card>
                   </div>
                 </div>
-                }
-
-                <!-- Data Control Question Fields -->
-                @if ( getQuestionType(sectionIndex, questionIndex) ===
-                QuestionType.DATA_CONTROL ) {
-                <div class="data-control-fields">
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label>Title *</label>
-                      <input
-                        type="text"
-                        formControlName="title"
-                        class="form-control"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>Score *</label>
-                      <input
-                        type="number"
-                        formControlName="score"
-                        class="form-control"
-                        min="0"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>Max Score (Auto-calculated)</label>
-                      <input
-                        type="number"
-                        formControlName="maxScore"
-                        class="form-control"
-                        readonly
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>Indicator *</label>
-                      <input
-                        type="text"
-                        formControlName="indicator"
-                        class="form-control"
-                      />
-                    </div>
-                    <div class="form-group">
-                      <label>Month *</label>
-                      <input
-                        type="month"
-                        formControlName="month"
-                        class="form-control"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Data Source -->
-                  <div formGroupName="dataSource" class="data-point-group">
-                    <h6>Data Source</h6>
-                    <div class="form-grid">
-                      <div class="form-group">
-                        <label>Name *</label>
-                        <input
-                          type="text"
-                          formControlName="name"
-                          class="form-control"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label>Value *</label>
-                        <input
-                          type="number"
-                          formControlName="value"
-                          class="form-control"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Data Count -->
-                  <div formGroupName="dataCount" class="data-point-group">
-                    <h6>Data Count</h6>
-                    <div class="form-grid">
-                      <div class="form-group">
-                        <label>Name *</label>
-                        <input
-                          type="text"
-                          formControlName="name"
-                          class="form-control"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label>Value *</label>
-                        <input
-                          type="number"
-                          formControlName="value"
-                          class="form-control"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <label>
-                      <input
-                        type="checkbox"
-                        formControlName="hasDataDifference"
-                      />
-                      Has Data Difference
-                    </label>
-                  </div>
-                </div>
-                }
               </div>
-              }
-            </div>
-          </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+
+          <!-- Empty Sections State -->
+          <mat-card
+            *ngIf="sectionsArray.controls.length === 0"
+            class="empty-sections-card"
+            appearance="outlined"
+          >
+            <mat-card-content>
+              <div class="empty-state">
+                <mat-icon class="empty-icon">folder</mat-icon>
+                <h3>No Sections Added</h3>
+                <p>
+                  Start by adding your first section to organize your checklist.
+                </p>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="addSection()"
+                >
+                  <mat-icon>add</mat-icon>
+                  Add Your First Section
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
         </div>
-        }
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   </form>
 </div>

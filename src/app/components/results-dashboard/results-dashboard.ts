@@ -42,6 +42,9 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { MatGridListModule } from "@angular/material/grid-list";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { MatSnackBarModule, MatSnackBar } from "@angular/material/snack-bar";
+import { MatBadgeModule } from "@angular/material/badge";
+import { MatMenuModule } from "@angular/material/menu";
+import { MatListModule } from "@angular/material/list";
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { Observable } from "rxjs";
 import { map, shareReplay } from "rxjs/operators";
@@ -98,6 +101,9 @@ export type ChartOptions = {
     MatGridListModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatBadgeModule,
+    MatMenuModule,
+    MatListModule,
   ],
   templateUrl: "./results-dashboard.html",
   styleUrl: "./results-dashboard.css",
@@ -145,8 +151,35 @@ export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
     responsive: [],
   });
 
+  // Readonly computed properties
   protected readonly expandedSections = this._expandedSections.asReadonly();
   protected readonly chartOptions = this._chartOptions.asReadonly();
+
+  // New methods for Material Design template compatibility
+  protected getQuestionTypeColor(type: string): string {
+    switch (type.toLowerCase()) {
+      case "standard":
+        return "primary";
+      case "data_control":
+        return "accent";
+      default:
+        return "basic";
+    }
+  }
+
+  protected getProgressColor(percentage: number): string {
+    if (percentage >= 90) return "primary";
+    if (percentage >= 70) return "accent";
+    if (percentage >= 50) return "warn";
+    return "warn";
+  }
+
+  protected getScoreChipColor(percentage: number): string {
+    if (percentage >= 90) return "primary";
+    if (percentage >= 70) return "accent";
+    if (percentage >= 50) return "warn";
+    return "warn";
+  }
 
   // Computed properties for filter options from organization service
   protected readonly availableHealthPrograms = computed(() =>
@@ -557,12 +590,5 @@ export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
       horizontalPosition: "center",
       verticalPosition: "bottom",
     });
-  }
-
-  protected getProgressColor(percentage: number): string {
-    if (percentage >= 90) return "primary";
-    if (percentage >= 75) return "accent";
-    if (percentage >= 60) return "warn";
-    return "warn";
   }
 }

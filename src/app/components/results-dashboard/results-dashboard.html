@@ -1,349 +1,484 @@
 <div class="results-dashboard">
   <!-- Dashboard Header -->
-  <div class="dashboard-header">
-    <div class="header-content">
-      <h1>Assessment Results Dashboard</h1>
-      <p class="header-subtitle">
+  <mat-card appearance="outlined" class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="header-icon">analytics</mat-icon>
+        Assessment Results Dashboard
+      </mat-card-title>
+      <mat-card-subtitle>
         Comprehensive view of checklist assessments across departments and
         organizational levels
-      </p>
-    </div>
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-grid-list
+        [cols]="(isHandset$ | async) ? 1 : 3"
+        rowHeight="100px"
+        gutterSize="16px"
+      >
+        <mat-grid-tile>
+          <mat-card class="stat-card" appearance="outlined">
+            <mat-card-content>
+              <div class="stat-content">
+                <mat-icon class="stat-icon primary-color">assignment</mat-icon>
+                <div class="stat-details">
+                  <div class="stat-number">{{ totalAssessments() }}</div>
+                  <div class="stat-label">Total Assessments</div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
 
-    <div class="header-stats">
-      <div class="stat-card">
-        <div class="stat-number">{{ totalAssessments() }}</div>
-        <div class="stat-label">Total Assessments</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ averageScore() }}%</div>
-        <div class="stat-label">Average Score</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">{{ completedAssessments() }}</div>
-        <div class="stat-label">Completed</div>
-      </div>
-    </div>
-  </div>
+        <mat-grid-tile>
+          <mat-card class="stat-card" appearance="outlined">
+            <mat-card-content>
+              <div class="stat-content">
+                <mat-icon class="stat-icon accent-color">analytics</mat-icon>
+                <div class="stat-details">
+                  <div class="stat-number">{{ averageScore() }}%</div>
+                  <div class="stat-label">Average Score</div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
 
-  @if (checklistService.error()) {
-  <div class="alert alert-error">
-    {{ checklistService.error() }}
-    <button
-      type="button"
-      class="close-btn"
-      (click)="checklistService.clearError()"
-    >
-      ×
-    </button>
-  </div>
-  }
+        <mat-grid-tile>
+          <mat-card class="stat-card" appearance="outlined">
+            <mat-card-content>
+              <div class="stat-content">
+                <mat-icon class="stat-icon success-color"
+                  >check_circle</mat-icon
+                >
+                <div class="stat-details">
+                  <div class="stat-number">{{ completedAssessments() }}</div>
+                  <div class="stat-label">Completed</div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </mat-card-content>
+  </mat-card>
 
-  <!-- Filters -->
-  <div class="filters-section">
-    <form [formGroup]="filterForm" class="filters-form">
-      <div class="filter-group">
-        <label for="healthProgram">Health Program</label>
-        <select
-          id="healthProgram"
-          formControlName="healthProgram"
-          class="filter-select"
-        >
-          <option value="">All Programs</option>
-          @for (program of availableHealthPrograms(); track program) {
-          <option [value]="program">{{ program }}</option>
-          }
-        </select>
+  <!-- Error Display -->
+  <mat-card
+    *ngIf="checklistService.error()"
+    class="error-card"
+    appearance="outlined"
+  >
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <div>
+          <h3>Error</h3>
+          <p>{{ checklistService.error() }}</p>
+        </div>
       </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="checklistService.clearError()">
+        <mat-icon>close</mat-icon>
+        Dismiss
+      </button>
+    </mat-card-actions>
+  </mat-card>
 
-      <div class="filter-group">
-        <label for="organizationalLevel">Organizational Level</label>
-        <select
-          id="organizationalLevel"
-          formControlName="organizationalLevel"
-          class="filter-select"
-        >
-          <option value="">All Levels</option>
-          @for (level of availableOrganizationalLevels(); track level) {
-          <option [value]="level">{{ level }}</option>
-          }
-        </select>
-      </div>
+  <!-- Filters Section -->
+  <mat-card appearance="outlined" class="filters-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>filter_list</mat-icon>
+        Filters
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="filterForm" class="filters-form">
+        <div class="filter-row">
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Health Program</mat-label>
+            <mat-select formControlName="healthProgram">
+              <mat-option value="">All Programs</mat-option>
+              <mat-option
+                *ngFor="let program of availableHealthPrograms()"
+                [value]="program"
+              >
+                {{ program }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
 
-      <div class="filter-group">
-        <label for="department">Department</label>
-        <select
-          id="department"
-          formControlName="department"
-          class="filter-select"
-        >
-          <option value="">All Departments</option>
-          @for (dept of availableDepartments(); track dept) {
-          <option [value]="dept">{{ dept }}</option>
-          }
-        </select>
-      </div>
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Organizational Level</mat-label>
+            <mat-select formControlName="organizationalLevel">
+              <mat-option value="">All Levels</mat-option>
+              <mat-option
+                *ngFor="let level of availableOrganizationalLevels()"
+                [value]="level"
+              >
+                {{ level }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
 
-      <div class="filter-actions">
-        <button type="button" class="btn btn-outline" (click)="clearFilters()">
-          Clear Filters
-        </button>
-        <button type="button" class="btn btn-primary" (click)="exportResults()">
-          Export Results
-        </button>
-      </div>
-    </form>
-  </div>
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="department">
+              <mat-option value="">All Departments</mat-option>
+              <mat-option
+                *ngFor="let dept of availableDepartments()"
+                [value]="dept"
+              >
+                {{ dept }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button color="primary" (click)="clearFilters()">
+        <mat-icon>clear</mat-icon>
+        Clear Filters
+      </button>
+      <button mat-raised-button color="primary" (click)="exportResults()">
+        <mat-icon>download</mat-icon>
+        Export Results
+      </button>
+    </mat-card-actions>
+  </mat-card>
 
-  <!-- Score Distribution Chart -->
-  @if (chartData() && filteredResultsGrouping().length > 0) {
-  <div class="chart-section">
-    <div class="chart-header">
-      <h2>Section Score Distribution</h2>
-      <p class="chart-subtitle">
+  <!-- Chart Section -->
+  <mat-card
+    *ngIf="chartData() && filteredResultsGrouping().length > 0"
+    appearance="outlined"
+    class="chart-card"
+  >
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>bar_chart</mat-icon>
+        Section Score Distribution
+      </mat-card-title>
+      <mat-card-subtitle>
         Histogram showing the distribution of section scores across different
         performance ranges
-      </p>
-    </div>
-    <div class="chart-container">
-      <apx-chart
-        #chart
-        [series]="chartOptions().series || []"
-        [chart]="chartOptions().chart || {}"
-        [dataLabels]="chartOptions().dataLabels || {}"
-        [plotOptions]="chartOptions().plotOptions || {}"
-        [yaxis]="chartOptions().yaxis || {}"
-        [xaxis]="chartOptions().xaxis || {}"
-        [fill]="chartOptions().fill || {}"
-        [tooltip]="chartOptions().tooltip || {}"
-        [stroke]="chartOptions().stroke || {}"
-        [legend]="chartOptions().legend || {}"
-        [responsive]="chartOptions().responsive || []"
-      >
-      </apx-chart>
-    </div>
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="chart-container">
+        <apx-chart
+          #chart
+          [series]="chartOptions().series || []"
+          [chart]="chartOptions().chart || {}"
+          [dataLabels]="chartOptions().dataLabels || {}"
+          [plotOptions]="chartOptions().plotOptions || {}"
+          [yaxis]="chartOptions().yaxis || {}"
+          [xaxis]="chartOptions().xaxis || {}"
+          [fill]="chartOptions().fill || {}"
+          [tooltip]="chartOptions().tooltip || {}"
+          [stroke]="chartOptions().stroke || {}"
+          [legend]="chartOptions().legend || {}"
+          [responsive]="chartOptions().responsive || []"
+        >
+        </apx-chart>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading State -->
+  <div *ngIf="checklistService.loading()" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="loading-text">Loading assessment results...</p>
   </div>
-  } @if (checklistService.loading()) {
-  <div class="loading-state">
-    <div class="loading-spinner"></div>
-    <p>Loading assessment results...</p>
-  </div>
-  } @else {
+
   <!-- Results Grid -->
-  <div class="results-grid">
-    @for ( grouping of filteredResultsGrouping(); track grouping.department +
-    "-" + grouping.organizationalLevel ) {
-    <div class="result-card">
-      <div class="result-header">
-        <div class="header-info">
-          <h3>{{ grouping.department }}</h3>
-          <span class="org-level">{{ grouping.organizationalLevel }}</span>
-        </div>
-        <div class="overall-score">
-          <div
-            class="score-circle"
-            [class]="
-                  getScoreClass(grouping.summary.completionPercentage)
-                "
-          >
-            <span class="score-value"
-              >{{ grouping.summary.completionPercentage.toFixed(0) }}%</span
+  <div
+    *ngIf="!checklistService.loading() && filteredResultsGrouping().length > 0"
+    class="results-grid"
+  >
+    <mat-card
+      *ngFor="
+        let grouping of filteredResultsGrouping();
+        track: grouping.department + '-' + grouping.organizationalLevel
+      "
+      class="result-card"
+      appearance="outlined"
+    >
+      <mat-card-header>
+        <div class="result-header-content">
+          <div class="header-info">
+            <mat-card-title>{{ grouping.department }}</mat-card-title>
+            <mat-card-subtitle>
+              <mat-chip color="primary" variant="outlined">
+                {{ grouping.organizationalLevel }}
+              </mat-chip>
+            </mat-card-subtitle>
+          </div>
+          <div class="overall-score">
+            <div
+              class="score-circle"
+              [class]="getScoreClass(grouping.summary.completionPercentage)"
             >
+              <span class="score-value">
+                {{ grouping.summary.completionPercentage.toFixed(0) }}%
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </mat-card-header>
 
-      <div class="result-summary">
-        <div class="summary-item">
-          <span class="label">Total Score:</span>
-          <span class="value"
-            >{{ grouping.summary.totalScore }}/{{
-            grouping.summary.maxPossibleScore }}</span
-          >
-        </div>
-        <div class="summary-item">
-          <span class="label">Sections:</span>
-          <span class="value">{{ grouping.summary.sectionCount }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="label">Questions:</span>
-          <span class="value">{{ grouping.summary.questionCount }}</span>
-        </div>
-        @if (grouping.summary.lastUpdated) {
-        <div class="summary-item">
-          <span class="label">Last Updated:</span>
-          <span class="value"
-            >{{ formatDate(grouping.summary.lastUpdated) }}</span
-          >
-        </div>
-        }
-      </div>
-
-      <!-- Section Details -->
-      <div class="sections-breakdown">
-        <h4>Section Performance</h4>
-        <div class="sections-list">
-          @for (section of grouping.sections; track section.sectionId) {
-          <div class="section-item">
-            <div class="section-info">
-              <span class="section-name">{{ section.sectionTitle }}</span>
-              <span class="section-score"
-                >{{ section.score }}/{{ section.maxScore }}</span
-              >
-            </div>
-            <div class="section-progress">
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  [style.width.%]="section.percentage"
-                  [class]="getProgressClass(section.percentage)"
-                ></div>
+      <mat-card-content>
+        <!-- Summary Statistics -->
+        <div class="result-summary">
+          <mat-list class="summary-list">
+            <mat-list-item>
+              <mat-icon matListItemIcon>score</mat-icon>
+              <div matListItemTitle>Total Score</div>
+              <div matListItemLine>
+                {{ grouping.summary.totalScore }}/{{
+                grouping.summary.maxPossibleScore }}
               </div>
-              <span class="percentage"
-                >{{ section.percentage.toFixed(0) }}%</span
-              >
-            </div>
+            </mat-list-item>
+            <mat-divider></mat-divider>
 
-            <!-- Question Results Toggle -->
-            <div class="question-toggle">
-              <button
-                type="button"
-                class="toggle-btn"
-                (click)="
-                        toggleSectionDetails(
-                          grouping.department + '-' + section.sectionId
-                        )
-                      "
-                [class.expanded]="
-                        expandedSections().has(
-                          grouping.department + '-' + section.sectionId
-                        )
-                      "
-              >
-                {{ expandedSections().has( grouping.department + "-" +
-                section.sectionId ) ? "Hide" : "Show" }} Questions
-              </button>
-            </div>
+            <mat-list-item>
+              <mat-icon matListItemIcon>folder</mat-icon>
+              <div matListItemTitle>Sections</div>
+              <div matListItemLine>{{ grouping.summary.sectionCount }}</div>
+            </mat-list-item>
+            <mat-divider></mat-divider>
 
-            <!-- Question Details -->
-            @if ( expandedSections().has( grouping.department + "-" +
-            section.sectionId ) ) {
-            <div class="questions-details">
-              @for ( question of section.questionResults; track
-              question.questionId ) {
-              <div class="question-item">
-                <div class="question-header">
-                  <span class="question-title"
-                    >{{ question.questionTitle }}</span
-                  >
-                  <span
-                    class="question-type-badge"
-                    [class]="
-                                'type-' + question.type.toLowerCase()
-                              "
-                  >
-                    {{ getQuestionTypeLabel(question.type) }}
+            <mat-list-item>
+              <mat-icon matListItemIcon>help_outline</mat-icon>
+              <div matListItemTitle>Questions</div>
+              <div matListItemLine>{{ grouping.summary.questionCount }}</div>
+            </mat-list-item>
+
+            <mat-divider *ngIf="grouping.summary.lastUpdated"></mat-divider>
+            <mat-list-item *ngIf="grouping.summary.lastUpdated">
+              <mat-icon matListItemIcon>update</mat-icon>
+              <div matListItemTitle>Last Updated</div>
+              <div matListItemLine>
+                {{ formatDate(grouping.summary.lastUpdated) }}
+              </div>
+            </mat-list-item>
+          </mat-list>
+        </div>
+
+        <!-- Sections Breakdown -->
+        <mat-accordion class="sections-accordion">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>list_alt</mat-icon>
+                Section Performance
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ grouping.sections.length }} sections
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="sections-list">
+              <div
+                *ngFor="let section of grouping.sections; track: section.sectionId"
+                class="section-item"
+              >
+                <div class="section-header">
+                  <div class="section-info">
+                    <h4 class="section-name">{{ section.sectionTitle }}</h4>
+                    <mat-chip
+                      [color]="getProgressColor(section.percentage)"
+                      variant="filled"
+                      class="section-score-chip"
+                    >
+                      {{ section.score }}/{{ section.maxScore }}
+                    </mat-chip>
+                  </div>
+                </div>
+
+                <div class="section-progress">
+                  <mat-progress-bar
+                    [value]="section.percentage"
+                    [color]="getProgressColor(section.percentage)"
+                    class="section-progress-bar"
+                  ></mat-progress-bar>
+                  <span class="percentage">
+                    {{ section.percentage.toFixed(0) }}%
                   </span>
                 </div>
-                <div class="question-score">
-                  <span>{{ question.score }}/{{ question.maxScore }}</span>
-                  <div class="mini-progress">
-                    <div
-                      class="mini-fill"
-                      [style.width.%]="
-                                  (question.score / question.maxScore) * 100
-                                "
-                    ></div>
-                  </div>
-                </div>
 
-                @if ( question.subQuestionResults &&
-                question.subQuestionResults.length > 0 ) {
-                <div class="sub-questions">
-                  @for ( subQuestion of question.subQuestionResults; track
-                  subQuestion.questionId ) {
-                  <div class="sub-question-item">
-                    <span class="sub-title"
-                      >{{ subQuestion.questionTitle }}</span
-                    >
-                    <span class="sub-score"
-                      >{{ subQuestion.score }}/{{ subQuestion.maxScore }}</span
-                    >
+                <!-- Questions Expansion Panel -->
+                <mat-expansion-panel class="questions-panel">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>Questions Details</mat-panel-title>
+                    <mat-panel-description>
+                      {{ section.questionResults.length }} questions
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+
+                  <div class="questions-details">
+                    <mat-list class="questions-list">
+                      <mat-list-item
+                        *ngFor="
+                          let question of section.questionResults;
+                          track: question.questionId
+                        "
+                        class="question-item"
+                      >
+                        <div matListItemTitle class="question-header">
+                          <span class="question-title">
+                            {{ question.questionTitle }}
+                          </span>
+                          <mat-chip
+                            [color]="getQuestionTypeColor(question.type)"
+                            variant="outlined"
+                            class="question-type-chip"
+                          >
+                            {{ getQuestionTypeLabel(question.type) }}
+                          </mat-chip>
+                        </div>
+                        <div matListItemLine class="question-score">
+                          <span
+                            >{{ question.score }}/{{ question.maxScore }}</span
+                          >
+                          <mat-progress-bar
+                            [value]="(question.score / question.maxScore) * 100"
+                            class="mini-progress"
+                          ></mat-progress-bar>
+                        </div>
+
+                        <!-- Sub-questions -->
+                        <div
+                          *ngIf="
+                            question.subQuestionResults &&
+                            question.subQuestionResults.length > 0
+                          "
+                          class="sub-questions"
+                        >
+                          <mat-chip-listbox class="sub-questions-list">
+                            <mat-chip-option
+                              *ngFor="
+                                let subQuestion of question.subQuestionResults;
+                                track: subQuestion.questionId
+                              "
+                              disabled
+                            >
+                              <span class="sub-title">
+                                {{ subQuestion.questionTitle }}
+                              </span>
+                              <span class="sub-score">
+                                {{ subQuestion.score }}/{{ subQuestion.maxScore
+                                }}
+                              </span>
+                            </mat-chip-option>
+                          </mat-chip-listbox>
+                        </div>
+                      </mat-list-item>
+                    </mat-list>
                   </div>
-                  }
-                </div>
-                }
+                </mat-expansion-panel>
+
+                <mat-divider
+                  *ngIf="section !== grouping.sections[grouping.sections.length - 1]"
+                ></mat-divider>
               </div>
-              }
             </div>
-            }
-          </div>
-          }
-        </div>
-      </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </mat-card-content>
 
-      <!-- Actions -->
-      <div class="card-actions">
+      <mat-card-actions align="end">
         <button
-          type="button"
-          class="btn btn-secondary btn-sm"
+          mat-button
+          color="primary"
           (click)="viewDetailedReport(grouping)"
         >
+          <mat-icon>visibility</mat-icon>
           View Report
         </button>
-        <button
-          type="button"
-          class="btn btn-outline btn-sm"
-          (click)="exportGrouping(grouping)"
-        >
+        <button mat-button color="accent" (click)="exportGrouping(grouping)">
+          <mat-icon>download</mat-icon>
           Export
         </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Empty State -->
+  <mat-card
+    *ngIf="
+      !checklistService.loading() && filteredResultsGrouping().length === 0
+    "
+    class="empty-state-card"
+    appearance="outlined"
+  >
+    <mat-card-content>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <mat-icon class="large-icon">analytics</mat-icon>
+        </div>
+        <h2>No Results Found</h2>
+        <p>Try adjusting your filters to see assessment results.</p>
+        <button mat-raised-button color="primary" (click)="clearFilters()">
+          <mat-icon>clear</mat-icon>
+          Clear All Filters
+        </button>
       </div>
-    </div>
-    }
-  </div>
+    </mat-card-content>
+  </mat-card>
 
-  @if (filteredResultsGrouping().length === 0) {
-  <div class="empty-state">
-    <div class="empty-icon">📊</div>
-    <h3>No Results Found</h3>
-    <p>Try adjusting your filters to see assessment results.</p>
-    <button type="button" class="btn btn-primary" (click)="clearFilters()">
-      Clear All Filters
-    </button>
-  </div>
-  } }
-
-  <!-- Comparison Chart Section -->
-  @if (filteredResultsGrouping().length > 1) {
-  <div class="comparison-section">
-    <h2>Performance Comparison</h2>
-    <div class="comparison-chart">
-      <div class="chart-container">
-        @for ( grouping of filteredResultsGrouping(); track grouping.department
-        + "-" + grouping.organizationalLevel ) {
-        <div class="chart-bar">
-          <div class="bar-container">
-            <div
-              class="bar-fill"
-              [style.height.%]="grouping.summary.completionPercentage"
-              [class]="
-                    getScoreClass(grouping.summary.completionPercentage)
-                  "
-            ></div>
-          </div>
-          <div class="bar-label">
-            <div class="label-primary">{{ grouping.department }}</div>
-            <div class="label-secondary">
-              {{ grouping.organizationalLevel }}
+  <!-- Performance Comparison Chart -->
+  <mat-card
+    *ngIf="filteredResultsGrouping().length > 1"
+    appearance="outlined"
+    class="comparison-card"
+  >
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>compare_arrows</mat-icon>
+        Performance Comparison
+      </mat-card-title>
+      <mat-card-subtitle>
+        Compare completion percentages across departments and organizational
+        levels
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="comparison-chart">
+        <div class="chart-bars">
+          <div
+            *ngFor="
+              let grouping of filteredResultsGrouping();
+              track: grouping.department + '-' + grouping.organizationalLevel
+            "
+            class="chart-bar"
+          >
+            <div class="bar-container">
+              <div
+                class="bar-fill"
+                [style.height.%]="grouping.summary.completionPercentage"
+                [class]="getScoreClass(grouping.summary.completionPercentage)"
+              ></div>
             </div>
-            <div class="label-score">
-              {{ grouping.summary.completionPercentage.toFixed(0) }}%
+            <div class="bar-label">
+              <div class="label-primary">{{ grouping.department }}</div>
+              <div class="label-secondary">
+                {{ grouping.organizationalLevel }}
+              </div>
+              <mat-chip
+                [color]="getScoreChipColor(grouping.summary.completionPercentage)"
+                variant="filled"
+                class="label-score"
+              >
+                {{ grouping.summary.completionPercentage.toFixed(0) }}%
+              </mat-chip>
             </div>
           </div>
         </div>
-        }
       </div>
-    </div>
-  </div>
-  }
+    </mat-card-content>
+  </mat-card>
 </div>
