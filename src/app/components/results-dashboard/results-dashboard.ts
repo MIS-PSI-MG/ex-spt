@@ -5,17 +5,36 @@ import {
   inject,
   signal,
   computed,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, FormGroup } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
+import {
+  NgApexchartsModule,
+  ChartComponent,
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexDataLabels,
+  ApexPlotOptions,
+  ApexYAxis,
+  ApexXAxis,
+  ApexLegend,
+  ApexResponsive,
+  ApexTooltip,
+  ApexFill,
+  ApexStroke,
+} from "ng-apexcharts";
 
 import {
   ChecklistService,
   ResultsGrouping,
   SectionResult,
 } from "../../services/checklist.service";
+import { OrganizationService } from "../../services/organization.service";
 import {
   Checklist,
   ChecklistSummary,
@@ -28,35 +47,66 @@ interface FilterOptions {
   department: string;
 }
 
+export type ChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  dataLabels: ApexDataLabels;
+  plotOptions: ApexPlotOptions;
+  yaxis: ApexYAxis;
+  xaxis: ApexXAxis;
+  fill: ApexFill;
+  tooltip: ApexTooltip;
+  stroke: ApexStroke;
+  legend: ApexLegend;
+  responsive: ApexResponsive[];
+};
+
 @Component({
   selector: "app-results-dashboard",
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgApexchartsModule],
   templateUrl: "./results-dashboard.html",
   styleUrl: "./results-dashboard.css",
 })
-export class ResultsDashboard implements OnInit, OnDestroy {
+export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
+  @ViewChild("chart") chart!: ChartComponent;
+
   private readonly destroy$ = new Subject<void>();
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly checklistService = inject(ChecklistService);
+  private readonly organizationService = inject(OrganizationService);
 
   filterForm!: FormGroup;
   private readonly _expandedSections = signal<Set<string>>(new Set());
+  private readonly _chartOptions = signal<ChartOptions>({
+    series: [],
+    chart: { type: "bar", height: 400 },
+    dataLabels: { enabled: false },
+    plotOptions: {},
+    yaxis: {},
+    xaxis: { categories: [] },
+    fill: { opacity: 1 },
+    tooltip: {},
+    stroke: { show: false },
+    legend: { position: "top" },
+    responsive: [],
+  });
 
   protected readonly expandedSections = this._expandedSections.asReadonly();
+  protected readonly chartOptions = this._chartOptions.asReadonly();
 
-  // Computed properties for filter options
+  // Computed properties for filter options from organization service
   protected readonly availableHealthPrograms = computed(() =>
-    this.checklistService.availableHealthPrograms(),
+    this.organizationService.healthProgramNames(),
   );
 
   protected readonly availableOrganizationalLevels = computed(() =>
-    this.checklistService.availableOrganizationalLevels(),
+    this.organizationService.organizationalLevelNames(),
   );
 
   protected readonly availableDepartments = computed(() =>
-    this.checklistService.availableDepartments(),
+    this.organizationService.departmentNames(),
   );
 
   // Filtered results based on form values
@@ -106,10 +156,63 @@ export class ResultsDashboard implements OnInit, OnDestroy {
     return Math.round(totalPercentage / results.length);
   });
 
+  // Chart data computed from filtered results
+  protected readonly chartData = computed(() => {
+    const results = this.filteredResultsGrouping();
+    if (results.length === 0) return null;
+
+    // Prepare histogram data for section scores
+    const scoreRanges = ["0-20%", "21-40%", "41-60%", "61-80%", "81-100%"];
+    const sectionNames = new Set<string>();
+    const scoreData: { [key: string]: number[] } = {};
+
+    // Collect all unique section names
+    results.forEach((result) => {
+      result.sections.forEach((section) => {
+        sectionNames.add(section.sectionTitle);
+      });
+    });
+
+    // Initialize score data for each section
+    Array.from(sectionNames).forEach((sectionName) => {
+      scoreData[sectionName] = [0, 0, 0, 0, 0]; // Initialize counts for each range
+    });
+
+    // Count scores in each range for each section
+    results.forEach((result) => {
+      result.sections.forEach((section) => {
+        const percentage = section.percentage;
+        let rangeIndex = 0;
+
+        if (percentage <= 20) rangeIndex = 0;
+        else if (percentage <= 40) rangeIndex = 1;
+        else if (percentage <= 60) rangeIndex = 2;
+        else if (percentage <= 80) rangeIndex = 3;
+        else rangeIndex = 4;
+
+        scoreData[section.sectionTitle][rangeIndex]++;
+      });
+    });
+
+    return {
+      scoreRanges,
+      sectionNames: Array.from(sectionNames),
+      scoreData,
+    };
+  });
+
   ngOnInit(): void {
     this.initializeForm();
     this.loadData();
     this.setupFormSubscriptions();
+    this.initializeChart();
+  }
+
+  ngAfterViewInit(): void {
+    // Update chart when data changes
+    setTimeout(() => {
+      this.updateChart();
+    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -138,7 +241,140 @@ export class ResultsDashboard implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((filters) => {
         this.checklistService.updateFilter(filters);
+        // Update chart when filters change
+        setTimeout(() => {
+          this.updateChart();
+        }, 100);
       });
+  }
+
+  private initializeChart(): void {
+    const chartOptions: ChartOptions = {
+      series: [],
+      chart: {
+        type: "bar",
+        height: 400,
+        stacked: false,
+        toolbar: {
+          show: true,
+          tools: {
+            download: true,
+            selection: false,
+            zoom: false,
+            zoomin: false,
+            zoomout: false,
+            pan: false,
+            reset: false,
+          },
+        },
+      },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: "70%",
+          dataLabels: {
+            position: "top",
+          },
+        },
+      },
+      dataLabels: {
+        enabled: true,
+        offsetY: -20,
+        style: {
+          fontSize: "12px",
+          colors: ["#304758"],
+        },
+      },
+      stroke: {
+        show: true,
+        width: 2,
+        colors: ["transparent"],
+      },
+      xaxis: {
+        categories: ["0-20%", "21-40%", "41-60%", "61-80%", "81-100%"],
+        title: {
+          text: "Score Ranges",
+        },
+      },
+      yaxis: {
+        title: {
+          text: "Number of Assessments",
+        },
+      },
+      fill: {
+        opacity: 1,
+        colors: ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"],
+      },
+      tooltip: {
+        y: {
+          formatter: (val: number) => {
+            return val + " assessments";
+          },
+        },
+      },
+      legend: {
+        position: "top",
+        horizontalAlign: "left",
+        offsetX: 40,
+      },
+      responsive: [
+        {
+          breakpoint: 768,
+          options: {
+            chart: {
+              height: 300,
+            },
+            plotOptions: {
+              bar: {
+                columnWidth: "90%",
+              },
+            },
+          },
+        },
+      ],
+    };
+
+    this._chartOptions.set(chartOptions);
+  }
+
+  private updateChart(): void {
+    const data = this.chartData();
+    if (!data) return;
+
+    const series: ApexAxisChartSeries = data.sectionNames.map(
+      (sectionName, index) => ({
+        name: sectionName,
+        data: data.scoreData[sectionName],
+        color: this.getColorForSection(index),
+      }),
+    );
+
+    this._chartOptions.update((current) => ({
+      ...current,
+      series,
+      chart: { ...current.chart, type: "bar", height: 400 },
+    }));
+  }
+
+  private getColorForSection(index: number): string {
+    const colors = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEAA7",
+      "#D63031",
+      "#74B9FF",
+      "#A29BFE",
+      "#FD79A8",
+      "#FDCB6E",
+      "#6C5CE7",
+      "#55A3FF",
+      "#26DE81",
+      "#FD79A8",
+      "#A0E7E5",
+    ];
+    return colors[index % colors.length];
   }
 
   protected clearFilters(): void {

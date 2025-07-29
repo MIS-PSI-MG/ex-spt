@@ -24,6 +24,13 @@ import { CommonModule } from "@angular/common";
             >
               📝 Checklists
             </a>
+            <a
+              routerLink="/assessment-quiz"
+              routerLinkActive="active"
+              class="nav-link"
+            >
+              ✅ Take Assessment
+            </a>
             <a routerLink="/results" routerLinkActive="active" class="nav-link">
               📊 Results
             </a>

@@ -1,0 +1,422 @@
+<div class="assessment-quiz-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading assessment...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-container">
+    <div class="error-message">
+      <h3>Error Loading Assessment</h3>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn-primary" (click)="loadAssessment()">
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <!-- Assessment Setup (for new assessments) -->
+  <div
+    *ngIf="!isLoading() && !error() && (!currentChecklist()?.sections || currentChecklist()?.sections?.length === 0)"
+    class="setup-container"
+  >
+    <div class="setup-card">
+      <h2>Start New Assessment</h2>
+      <form [formGroup]="assessmentForm" class="setup-form">
+        <div class="form-group">
+          <label for="healthProgram">Health Program *</label>
+          <select
+            id="healthProgram"
+            formControlName="healthProgram"
+            class="form-control"
+            [class.is-invalid]="assessmentForm.get('healthProgram')?.invalid && assessmentForm.get('healthProgram')?.touched"
+          >
+            <option value="">Select Health Program</option>
+            <option *ngFor="let program of healthPrograms()" [value]="program">
+              {{ program }}
+            </option>
+          </select>
+          <div
+            *ngIf="assessmentForm.get('healthProgram')?.invalid && assessmentForm.get('healthProgram')?.touched"
+            class="invalid-feedback"
+          >
+            Health Program is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="organizationalLevel">Organizational Level *</label>
+          <select
+            id="organizationalLevel"
+            formControlName="organizationalLevel"
+            class="form-control"
+            [class.is-invalid]="assessmentForm.get('organizationalLevel')?.invalid && assessmentForm.get('organizationalLevel')?.touched"
+          >
+            <option value="">Select Organizational Level</option>
+            <option
+              *ngFor="let level of organizationalLevels()"
+              [value]="level"
+            >
+              {{ level }}
+            </option>
+          </select>
+          <div
+            *ngIf="assessmentForm.get('organizationalLevel')?.invalid && assessmentForm.get('organizationalLevel')?.touched"
+            class="invalid-feedback"
+          >
+            Organizational Level is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="department">Department *</label>
+          <select
+            id="department"
+            formControlName="department"
+            class="form-control"
+            [class.is-invalid]="assessmentForm.get('department')?.invalid && assessmentForm.get('department')?.touched"
+          >
+            <option value="">Select Department</option>
+            <option *ngFor="let dept of departments()" [value]="dept">
+              {{ dept }}
+            </option>
+          </select>
+          <div
+            *ngIf="assessmentForm.get('department')?.invalid && assessmentForm.get('department')?.touched"
+            class="invalid-feedback"
+          >
+            Department is required
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="saveAndExit()"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="assessmentForm.invalid"
+            (click)="startNewAssessment()"
+          >
+            Continue to Assessment
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results Display -->
+  <div
+    *ngIf="!isLoading() && !error() && showResults()"
+    class="results-container"
+  >
+    <div class="results-header">
+      <h2>Assessment Complete!</h2>
+      <p>Review your results below and take action on areas for improvement.</p>
+    </div>
+
+    <div class="results-summary">
+      <div class="summary-cards">
+        <div class="summary-card">
+          <h3>Overall Score</h3>
+          <div class="score-display">
+            {{ assessmentResults()?.overall?.totalScore }} / {{
+            assessmentResults()?.overall?.maxScore }}
+          </div>
+          <div class="percentage-display">
+            {{ assessmentResults()?.overall?.percentage?.toFixed(1) }}%
+          </div>
+          <div
+            class="score-classification"
+            [class]="getScoreClass(assessmentResults()?.overall?.percentage || 0)"
+          >
+            {{ getScoreClass(assessmentResults()?.overall?.percentage || 0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-results">
+      <h3>Section Breakdown</h3>
+      <div
+        *ngFor="let section of assessmentResults()?.sections"
+        class="section-result-card"
+      >
+        <div class="section-header">
+          <h4>{{ section.sectionTitle }}</h4>
+          <div class="section-score">
+            {{ section.totalScore }} / {{ section.maxScore }} ({{
+            section.percentage.toFixed(1) }}%)
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [style.width.%]="section.percentage"
+            [class]="'progress-' + getScoreClass(section.percentage)"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button type="button" class="btn btn-secondary" (click)="startOver()">
+        Start Over
+      </button>
+      <button type="button" class="btn btn-primary" (click)="exportResults()">
+        Export Results
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Assessment Interface -->
+  <div
+    *ngIf="!isLoading() && !error() && !showResults() && currentChecklist()?.sections && (currentChecklist()?.sections?.length || 0) > 0"
+    class="assessment-interface"
+  >
+    <!-- Header -->
+    <div class="assessment-header">
+      <div class="assessment-info">
+        <h2>{{ currentChecklist()?.healthProgram }} Assessment</h2>
+        <p class="assessment-meta">
+          {{ currentChecklist()?.organizationalLevel }} | {{
+          currentChecklist()?.department }}
+        </p>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-section">
+        <div class="progress-info">
+          <span>Progress: {{ progressPercentage().toFixed(1) }}%</span>
+        </div>
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [style.width.%]="progressPercentage()"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Tabs -->
+    <div class="section-tabs">
+      <div class="tabs-container">
+        <button
+          *ngFor="let section of currentChecklist()?.sections; let i = index"
+          type="button"
+          class="section-tab"
+          [class.active]="i === currentSectionIndex()"
+          [class.completed]="i < currentSectionIndex()"
+          (click)="jumpToQuestion(i, 0)"
+        >
+          <span class="tab-number">{{ i + 1 }}</span>
+          <span class="tab-title">{{ section.title }}</span>
+          <span class="tab-progress">
+            {{ getQuestionsAnsweredInSection(i) }} / {{ section.questions.length
+            }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Container -->
+    <div class="question-container">
+      <!-- Question Header -->
+      <div class="question-header">
+        <div class="question-info">
+          <span class="question-number">
+            Question {{ currentQuestionIndex() + 1 }} of {{
+            totalQuestionsInCurrentSection() }}
+          </span>
+          <span
+            class="question-type-badge"
+            [class]="'badge-' + currentQuestion()?.type"
+          >
+            {{ getQuestionTypeLabel(currentQuestion()?.type!) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Question Content -->
+      <div class="question-content">
+        <h3 class="question-title">{{ currentQuestion()?.title }}</h3>
+
+        <!-- Data Control Question Additional Info -->
+        <div
+          *ngIf="currentQuestion()?.type === QuestionType.DATA_CONTROL"
+          class="data-control-info"
+        >
+          <div class="data-info-grid">
+            <div class="data-item">
+              <label>Indicator:</label>
+              <span>{{ getDataControlIndicator() }}</span>
+            </div>
+            <div class="data-item">
+              <label>Month:</label>
+              <span>{{ getDataControlMonth() }}</span>
+            </div>
+            <div class="data-item">
+              <label>Data Source:</label>
+              <span>{{ getDataControlSourceName() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response Form -->
+      <form [formGroup]="responseForm" class="response-form">
+        <div class="form-group">
+          <label for="score">Score *</label>
+          <div class="score-input-container">
+            <input
+              type="number"
+              id="score"
+              formControlName="score"
+              class="form-control score-input"
+              [min]="0"
+              [max]="getMaxScoreForCurrentQuestion()"
+              [class.is-invalid]="responseForm.get('score')?.invalid && responseForm.get('score')?.touched"
+            />
+            <span class="score-max"
+              >/ {{ getMaxScoreForCurrentQuestion() }}</span
+            >
+          </div>
+          <div
+            *ngIf="responseForm.get('score')?.invalid && responseForm.get('score')?.touched"
+            class="invalid-feedback"
+          >
+            <div *ngIf="responseForm.get('score')?.errors?.['required']">
+              Score is required
+            </div>
+            <div *ngIf="responseForm.get('score')?.errors?.['min']">
+              Score cannot be negative
+            </div>
+            <div *ngIf="responseForm.get('score')?.errors?.['max']">
+              Score cannot exceed {{ getMaxScoreForCurrentQuestion() }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes (Optional)</label>
+          <textarea
+            id="notes"
+            formControlName="notes"
+            class="form-control"
+            rows="3"
+            placeholder="Add any additional notes or observations..."
+          >
+          </textarea>
+        </div>
+      </form>
+
+      <!-- Sub-questions (for Standard Questions) -->
+      <div
+        *ngIf="currentQuestion()?.type === QuestionType.STANDARD && hasSubQuestions()"
+        class="sub-questions"
+      >
+        <h4>Sub-questions</h4>
+        <div
+          *ngFor="let subQuestion of getStandardSubQuestions()"
+          class="sub-question-item"
+        >
+          <div class="sub-question-title">{{ subQuestion.title }}</div>
+          <div class="sub-question-score">
+            Score: {{ getResponseForQuestion(subQuestion.id)?.score || 0 }} / {{
+            scoringService.calculateQuestionMaxScore(subQuestion) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="question-navigation">
+      <div class="nav-left">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="!canNavigatePrevious()"
+          (click)="previousQuestion()"
+        >
+          ← Previous
+        </button>
+      </div>
+
+      <div class="nav-center">
+        <button type="button" class="btn btn-outline" (click)="saveAndExit()">
+          Save & Exit
+        </button>
+      </div>
+
+      <div class="nav-right">
+        <button
+          *ngIf="!isLastQuestion()"
+          type="button"
+          class="btn btn-primary"
+          [disabled]="responseForm.invalid"
+          (click)="nextQuestion()"
+        >
+          Next →
+        </button>
+        <button
+          *ngIf="isLastQuestion()"
+          type="button"
+          class="btn btn-success"
+          [disabled]="responseForm.invalid"
+          (click)="completeAssessment()"
+        >
+          Complete Assessment
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Sidebar -->
+    <div class="question-sidebar" [class.open]="showQuestionList()">
+      <div class="sidebar-header">
+        <h4>Questions</h4>
+        <button type="button" class="btn-close" (click)="toggleQuestionList()">
+          ×
+        </button>
+      </div>
+      <div class="question-list">
+        <div
+          *ngFor="let section of currentChecklist()?.sections; let sectionIndex = index"
+          class="section-group"
+        >
+          <div class="section-group-header">{{ section.title }}</div>
+          <div
+            *ngFor="let question of section.questions; let questionIndex = index"
+            class="question-item"
+            [class.active]="sectionIndex === currentSectionIndex() && questionIndex === currentQuestionIndex()"
+            [class.answered]="isQuestionAnswered(question.id)"
+            (click)="jumpToQuestion(sectionIndex, questionIndex)"
+          >
+            <span class="question-number">{{ questionIndex + 1 }}</span>
+            <span class="question-title-short"
+              >{{ question.title | slice:0:40 }}{{ question.title.length > 40 ?
+              '...' : '' }}</span
+            >
+            <span class="question-status">
+              <i *ngIf="isQuestionAnswered(question.id)" class="icon-check"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle Sidebar Button -->
+    <button
+      type="button"
+      class="toggle-sidebar-btn"
+      (click)="toggleQuestionList()"
+    >
+      <i class="icon-list"></i>
+    </button>
+  </div>
+</div>

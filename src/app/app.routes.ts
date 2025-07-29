@@ -37,6 +37,22 @@ export const routes: Routes = [
     title: "Assessment",
   },
   {
+    path: "assessment-quiz",
+    loadComponent: () =>
+      import("./components/assessment-quiz/assessment-quiz").then(
+        (m) => m.AssessmentQuiz,
+      ),
+    title: "New Assessment",
+  },
+  {
+    path: "assessment-quiz/:id",
+    loadComponent: () =>
+      import("./components/assessment-quiz/assessment-quiz").then(
+        (m) => m.AssessmentQuiz,
+      ),
+    title: "Take Assessment",
+  },
+  {
     path: "results",
     loadComponent: () =>
       import("./components/results-dashboard/results-dashboard").then(

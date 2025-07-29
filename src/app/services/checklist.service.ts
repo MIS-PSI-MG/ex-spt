@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from "@angular/core";
+import { Injectable, computed, signal, inject } from "@angular/core";
 import {
   Checklist,
   ChecklistInput,
@@ -13,6 +13,9 @@ import {
   ChecklistUtils,
   DataPoint,
 } from "../interfaces/chkLst.interface";
+import { OrganizationService } from "./organization.service";
+import { IdGeneratorService } from "./id-generator.service";
+import { ScoringService } from "./scoring.service";
 
 export interface ChecklistFilter {
   healthProgram?: string;
@@ -49,6 +52,11 @@ export interface QuestionResult {
   providedIn: "root",
 })
 export class ChecklistService {
+  // Injected services
+  private readonly organizationService = inject(OrganizationService);
+  private readonly idGenerator = inject(IdGeneratorService);
+  private readonly scoringService = inject(ScoringService);
+
   // State signals
   private readonly _checklists = signal<Checklist[]>([]);
   private readonly _currentChecklist = signal<Checklist | null>(null);
@@ -135,22 +143,17 @@ export class ChecklistService {
     return Array.from(groupingMap.values());
   });
 
-  // Unique values for filtering
+  // Unique values for filtering - now using organization service
   readonly availableHealthPrograms = computed(() => {
-    const programs = new Set(this._checklists().map((c) => c.healthProgram));
-    return Array.from(programs).sort();
+    return this.organizationService.healthProgramNames();
   });
 
   readonly availableOrganizationalLevels = computed(() => {
-    const levels = new Set(
-      this._checklists().map((c) => c.organizationalLevel),
-    );
-    return Array.from(levels).sort();
+    return this.organizationService.organizationalLevelNames();
   });
 
   readonly availableDepartments = computed(() => {
-    const departments = new Set(this._checklists().map((c) => c.department));
-    return Array.from(departments).sort();
+    return this.organizationService.departmentNames();
   });
 
   // Current checklist validation
@@ -193,8 +196,19 @@ export class ChecklistService {
       // Simulate API call
       await this.delay(500);
 
+      // Ensure checklist has an ID
+      const checklistId =
+        checklistInput.id || this.idGenerator.generateChecklistId();
+
+      // Update checklist with calculated max scores
+      const checklistWithCalculatedScores =
+        this.scoringService.updateChecklistWithCalculatedScores({
+          ...checklistInput,
+          id: checklistId,
+        });
+
       const checklist: Checklist = {
-        ...checklistInput,
+        ...checklistWithCalculatedScores,
         createdAt: checklistInput.createdAt || new Date(),
         updatedAt: new Date(),
         version: checklistInput.version || "1.0.0",
@@ -296,85 +310,87 @@ export class ChecklistService {
   }
 
   private generateMockChecklists(): Checklist[] {
-    const dataPoint1: DataPoint = {
-      id: "dp1",
-      name: "Patient Count",
-      value: 150,
-    };
+    const healthPrograms = this.organizationService.healthProgramNames();
+    const orgLevels = this.organizationService.organizationalLevelNames();
+    const departments = this.organizationService.departmentNames();
 
-    const dataPoint2: DataPoint = {
-      id: "dp2",
-      name: "Target Count",
-      value: 200,
-    };
+    const mockChecklists: Checklist[] = [];
 
-    const standardQuestion: StandardQuestion = {
-      id: "q1",
-      type: QuestionType.STANDARD,
-      title: "Are safety protocols documented?",
-      score: 8,
-      maxScore: 10,
-      subQuestions: [
-        {
-          id: "sq1",
-          type: QuestionType.STANDARD,
-          title: "Are protocols up to date?",
-          score: 7,
-          maxScore: 10,
-        },
-      ],
-    };
+    // Generate mock data using organization service data
+    for (let i = 0; i < 5; i++) {
+      const dataPoint1: DataPoint = {
+        id: this.idGenerator.generateDataPointId(),
+        name: "Patient Count",
+        value: Math.floor(Math.random() * 200) + 50,
+      };
 
-    const dataControlQuestion: DataControlQuestion = {
-      id: "q2",
-      type: QuestionType.DATA_CONTROL,
-      title: "Patient Safety Metrics",
-      score: 6,
-      maxScore: 10,
-      indicator: "Patient Safety Score",
-      month: new Date("2024-01-01"),
-      dataSource: dataPoint1,
-      dataCount: dataPoint2,
-      hasDataDifference: true,
-    };
+      const dataPoint2: DataPoint = {
+        id: this.idGenerator.generateDataPointId(),
+        name: "Target Count",
+        value: Math.floor(Math.random() * 250) + 100,
+      };
 
-    const section: Section = {
-      id: "s1",
-      title: "Safety Standards",
-      score: 14,
-      maxScore: 20,
-      questions: [standardQuestion, dataControlQuestion],
-    };
-
-    return [
-      {
-        id: "cl1",
-        healthProgram: "Primary Care",
-        organizationalLevel: "Regional",
-        department: "Emergency",
-        sections: [section],
-        createdAt: new Date("2024-01-01"),
-        updatedAt: new Date("2024-01-15"),
-        version: "1.0.0",
-      },
-      {
-        id: "cl2",
-        healthProgram: "Specialized Care",
-        organizationalLevel: "National",
-        department: "Surgery",
-        sections: [
+      const standardQuestion: StandardQuestion = {
+        id: this.idGenerator.generateQuestionId(),
+        type: QuestionType.STANDARD,
+        title: "Are safety protocols documented?",
+        score: Math.floor(Math.random() * 10) + 1,
+        maxScore: this.scoringService.config().defaultMaxScore,
+        subQuestions: [
           {
-            ...section,
-            id: "s2",
-            title: "Surgical Standards",
-            score: 18,
-            maxScore: 20,
+            id: this.idGenerator.generateSubQuestionId(),
+            type: QuestionType.STANDARD,
+            title: "Are protocols up to date?",
+            score: Math.floor(Math.random() * 8) + 2,
+            maxScore: this.scoringService.config().defaultMaxScore,
           },
         ],
-        createdAt: new Date("2024-01-02"),
-        updatedAt: new Date("2024-01-16"),
-        version: "1.1.0",
-      },
-    ];
+      };
+
+      const dataControlQuestion: DataControlQuestion = {
+        id: this.idGenerator.generateQuestionId(),
+        type: QuestionType.DATA_CONTROL,
+        title: "Patient Safety Metrics",
+        score: Math.floor(Math.random() * 8) + 2,
+        maxScore: this.scoringService.calculateQuestionMaxScore({
+          id: "",
+          type: QuestionType.DATA_CONTROL,
+          title: "",
+          score: 0,
+          maxScore: 0,
+        } as DataControlQuestion),
+        indicator: "Patient Safety Score",
+        month: new Date("2024-01-01"),
+        dataSource: dataPoint1,
+        dataCount: dataPoint2,
+        hasDataDifference: Math.random() > 0.5,
+      };
+
+      const questions = [standardQuestion, dataControlQuestion];
+      const sectionMaxScore =
+        this.scoringService.calculateSectionMaxScore(questions);
+      const sectionScore = questions.reduce((sum, q) => sum + q.score, 0);
+
+      const section: Section = {
+        id: this.idGenerator.generateSectionId(),
+        title: `${departments[i % departments.length]} Standards`,
+        score: sectionScore,
+        maxScore: sectionMaxScore,
+        questions: questions,
+      };
+
+      mockChecklists.push({
+        id: this.idGenerator.generateChecklistId(),
+        healthProgram: healthPrograms[i % healthPrograms.length],
+        organizationalLevel: orgLevels[i % orgLevels.length],
+        department: departments[i % departments.length],
+        sections: [section],
+        createdAt: new Date(2024, 0, i + 1),
+        updatedAt: new Date(2024, 0, i + 15),
+        version: "1.0.0",
+      });
+    }
+
+    return mockChecklists;
   }
 }

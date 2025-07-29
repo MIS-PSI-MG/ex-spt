@@ -19,6 +19,9 @@ import { Router } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
 
 import { ChecklistService } from "../../services/checklist.service";
+import { OrganizationService } from "../../services/organization.service";
+import { IdGeneratorService } from "../../services/id-generator.service";
+import { ScoringService } from "../../services/scoring.service";
 import {
   Checklist,
   ChecklistInput,
@@ -43,36 +46,26 @@ export class ChecklistEditor implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
   protected readonly checklistService = inject(ChecklistService);
+  private readonly organizationService = inject(OrganizationService);
+  private readonly idGenerator = inject(IdGeneratorService);
+  private readonly scoringService = inject(ScoringService);
 
   protected readonly QuestionType = QuestionType;
 
   checklistForm!: FormGroup;
   protected readonly isEditMode = signal<boolean>(false);
 
-  // Computed properties for dropdown options
+  // Computed properties for dropdown options from organization service
   protected readonly availableHealthPrograms = computed(() =>
-    this.checklistService.availableHealthPrograms().length > 0
-      ? this.checklistService.availableHealthPrograms()
-      : ["Primary Care", "Specialized Care", "Emergency Care", "Mental Health"],
+    this.organizationService.healthProgramNames(),
   );
 
   protected readonly availableOrganizationalLevels = computed(() =>
-    this.checklistService.availableOrganizationalLevels().length > 0
-      ? this.checklistService.availableOrganizationalLevels()
-      : ["Local", "Regional", "National", "International"],
+    this.organizationService.organizationalLevelNames(),
   );
 
   protected readonly availableDepartments = computed(() =>
-    this.checklistService.availableDepartments().length > 0
-      ? this.checklistService.availableDepartments()
-      : [
-          "Emergency",
-          "Surgery",
-          "Pediatrics",
-          "Cardiology",
-          "Neurology",
-          "Oncology",
-        ],
+    this.organizationService.departmentNames(),
   );
 
   protected readonly validationResult = computed(() => {
@@ -103,7 +96,6 @@ export class ChecklistEditor implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.checklistForm = this.formBuilder.group({
-      id: ["", [Validators.required]],
       healthProgram: ["", [Validators.required]],
       organizationalLevel: ["", [Validators.required]],
       department: ["", [Validators.required]],
@@ -123,7 +115,6 @@ export class ChecklistEditor implements OnInit, OnDestroy {
 
   private populateForm(checklist: Checklist): void {
     this.checklistForm.patchValue({
-      id: checklist.id,
       healthProgram: checklist.healthProgram,
       organizationalLevel: checklist.organizationalLevel,
       department: checklist.department,
@@ -159,11 +150,13 @@ export class ChecklistEditor implements OnInit, OnDestroy {
   addQuestion(sectionIndex: number, type: QuestionType): void {
     const questionsArray = this.getQuestionsArray(sectionIndex);
     questionsArray.push(this.createQuestionFormGroup(type));
+    this.recalculateSectionMaxScore(sectionIndex);
   }
 
   removeQuestion(sectionIndex: number, questionIndex: number): void {
     const questionsArray = this.getQuestionsArray(sectionIndex);
     questionsArray.removeAt(questionIndex);
+    this.recalculateSectionMaxScore(sectionIndex);
   }
 
   getQuestionType(sectionIndex: number, questionIndex: number): QuestionType {
@@ -181,6 +174,27 @@ export class ChecklistEditor implements OnInit, OnDestroy {
       default:
         return "Unknown";
     }
+  }
+
+  // Method to recalculate section max scores when questions change
+  protected recalculateSectionMaxScore(sectionIndex: number): void {
+    const sectionControl = this.sectionsArray.at(sectionIndex);
+    const questionsArray = sectionControl.get("questions") as FormArray;
+
+    const questions = questionsArray.controls.map((control) => {
+      const questionValue = control.value;
+      return {
+        id: questionValue.id,
+        type: questionValue.type,
+        title: questionValue.title,
+        score: questionValue.score,
+        maxScore: questionValue.maxScore,
+      } as QuestionUnion;
+    });
+
+    const calculatedMaxScore =
+      this.scoringService.calculateSectionMaxScore(questions);
+    sectionControl.get("maxScore")?.setValue(calculatedMaxScore);
   }
 
   protected isFieldInvalid(fieldName: string): boolean {
@@ -219,14 +233,16 @@ export class ChecklistEditor implements OnInit, OnDestroy {
   }
 
   private createSectionFormGroup(section?: Section): FormGroup {
+    const generatedId = section?.id || this.idGenerator.generateSectionId();
+    const calculatedMaxScore = section?.questions
+      ? this.scoringService.calculateSectionMaxScore(section.questions)
+      : 0;
+
     const sectionForm = this.formBuilder.group({
-      id: [section?.id || "", [Validators.required]],
+      id: [generatedId],
       title: [section?.title || "", [Validators.required]],
       score: [section?.score || 0, [Validators.required, Validators.min(0)]],
-      maxScore: [
-        section?.maxScore || 10,
-        [Validators.required, Validators.min(1)],
-      ],
+      maxScore: [calculatedMaxScore],
       questions: this.formBuilder.array([]),
     });
 
@@ -246,16 +262,18 @@ export class ChecklistEditor implements OnInit, OnDestroy {
     type: QuestionType,
     question?: QuestionUnion,
   ): FormGroup {
+    const generatedId = question?.id || this.idGenerator.generateQuestionId();
+    const calculatedMaxScore = question
+      ? this.scoringService.calculateQuestionMaxScore(question)
+      : this.scoringService.config().defaultMaxScore;
+
     if (type === QuestionType.DATA_CONTROL) {
       const dataControlQuestion = question as DataControlQuestion;
       return this.formBuilder.group({
-        id: [question?.id || "", [Validators.required]],
+        id: [generatedId],
         title: [question?.title || "", [Validators.required]],
         score: [question?.score || 0, [Validators.required, Validators.min(0)]],
-        maxScore: [
-          question?.maxScore || 10,
-          [Validators.required, Validators.min(1)],
-        ],
+        maxScore: [calculatedMaxScore],
         type: [type, [Validators.required]],
         indicator: [
           dataControlQuestion?.indicator || "",
@@ -277,38 +295,37 @@ export class ChecklistEditor implements OnInit, OnDestroy {
       });
     } else {
       return this.formBuilder.group({
-        id: [question?.id || "", [Validators.required]],
+        id: [generatedId],
         title: [question?.title || "", [Validators.required]],
         score: [question?.score || 0, [Validators.required, Validators.min(0)]],
-        maxScore: [
-          question?.maxScore || 10,
-          [Validators.required, Validators.min(1)],
-        ],
+        maxScore: [calculatedMaxScore],
         type: [type, [Validators.required]],
       });
     }
   }
 
   private createDataPointFormGroup(dataPoint?: DataPoint): FormGroup {
+    const generatedId = dataPoint?.id || this.idGenerator.generateDataPointId();
     return this.formBuilder.group({
-      id: [dataPoint?.id || "", [Validators.required]],
+      id: [generatedId],
       name: [dataPoint?.name || "", [Validators.required]],
       value: [dataPoint?.value || 0, [Validators.required]],
     });
   }
 
   private formValueToChecklist(formValue: any): ChecklistInput {
+    const checklistId = this.isEditMode()
+      ? this.checklistService.currentChecklist()?.id ||
+        this.idGenerator.generateChecklistId()
+      : this.idGenerator.generateChecklistId();
+
     return {
-      id: formValue.id,
+      id: checklistId,
       healthProgram: formValue.healthProgram,
       organizationalLevel: formValue.organizationalLevel,
       department: formValue.department,
-      sections: formValue.sections.map((section: any) => ({
-        id: section.id,
-        title: section.title,
-        score: section.score,
-        maxScore: section.maxScore,
-        questions: section.questions.map((question: any) => {
+      sections: formValue.sections.map((section: any) => {
+        const sectionQuestions = section.questions.map((question: any) => {
           const baseQuestion = {
             id: question.id,
             title: question.title,
@@ -329,8 +346,20 @@ export class ChecklistEditor implements OnInit, OnDestroy {
           }
 
           return baseQuestion;
-        }),
-      })),
+        });
+
+        // Recalculate maxScore based on questions
+        const calculatedMaxScore =
+          this.scoringService.calculateSectionMaxScore(sectionQuestions);
+
+        return {
+          id: section.id,
+          title: section.title,
+          score: section.score,
+          maxScore: calculatedMaxScore,
+          questions: sectionQuestions,
+        };
+      }),
     };
   }
 

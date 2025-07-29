@@ -94,7 +94,35 @@
     </form>
   </div>
 
-  @if (checklistService.loading()) {
+  <!-- Score Distribution Chart -->
+  @if (chartData() && filteredResultsGrouping().length > 0) {
+  <div class="chart-section">
+    <div class="chart-header">
+      <h2>Section Score Distribution</h2>
+      <p class="chart-subtitle">
+        Histogram showing the distribution of section scores across different
+        performance ranges
+      </p>
+    </div>
+    <div class="chart-container">
+      <apx-chart
+        #chart
+        [series]="chartOptions().series || []"
+        [chart]="chartOptions().chart || {}"
+        [dataLabels]="chartOptions().dataLabels || {}"
+        [plotOptions]="chartOptions().plotOptions || {}"
+        [yaxis]="chartOptions().yaxis || {}"
+        [xaxis]="chartOptions().xaxis || {}"
+        [fill]="chartOptions().fill || {}"
+        [tooltip]="chartOptions().tooltip || {}"
+        [stroke]="chartOptions().stroke || {}"
+        [legend]="chartOptions().legend || {}"
+        [responsive]="chartOptions().responsive || []"
+      >
+      </apx-chart>
+    </div>
+  </div>
+  } @if (checklistService.loading()) {
   <div class="loading-state">
     <div class="loading-spinner"></div>
     <p>Loading assessment results...</p>
