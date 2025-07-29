@@ -43,6 +43,7 @@ import {
   ScoringService,
   SectionScore,
   QuestionScore,
+  ResponseOption,
 } from "../../services/scoring.service";
 import {
   Checklist,
@@ -59,7 +60,7 @@ import {
 
 interface AssessmentResponse {
   questionId: string;
-  score: number;
+  response: ResponseOption;
   notes?: string;
   timestamp: Date;
 }
@@ -224,10 +225,18 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
     const checklist = this._currentChecklist();
     if (!session || !checklist || !session.isCompleted) return null;
 
-    return this.scoringService.calculateChecklistScores(checklist);
+    // Convert assessment responses to scoring service format
+    const responses = session.responses.map((r) => ({
+      questionId: r.questionId,
+      response: r.response,
+      notes: r.notes,
+    }));
+
+    return this.scoringService.calculateChecklistScores(checklist, responses);
   });
 
   readonly QuestionType = QuestionType;
+  readonly ResponseOption = ResponseOption;
 
   ngOnInit(): void {
     this.initializeForms();
@@ -241,15 +250,15 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private initializeForms(): void {
+  private initializeForms() {
     this.assessmentForm = this.formBuilder.group({
-      healthProgram: ["", [Validators.required]],
-      organizationalLevel: ["", [Validators.required]],
-      department: ["", [Validators.required]],
+      healthProgram: ["", Validators.required],
+      organizationalLevel: ["", Validators.required],
+      department: ["", Validators.required],
     });
 
     this.responseForm = this.formBuilder.group({
-      score: [0, [Validators.required, Validators.min(0)]],
+      response: [null, Validators.required],
       notes: [""],
     });
   }
@@ -306,8 +315,7 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
       currentQuestionIndex: 0,
       isCompleted: false,
       totalScore: 0,
-      maxPossibleScore:
-        this.scoringService.calculateChecklistMaxScore(checklist),
+      maxPossibleScore: 0, // Will be calculated based on actual responses
     };
 
     this._assessmentSession.set(session);
@@ -425,18 +433,31 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
       const updatedQuestions = section.questions.map((question) => {
         const response = responseMap.get(question.id);
         if (response) {
-          return { ...question, score: response.score };
+          // Convert Yes/No/NA to numeric score
+          let score = 0;
+          if (response.response === ResponseOption.YES) {
+            score = 1;
+          } else if (response.response === ResponseOption.NO) {
+            score = 0;
+          }
+          // NA responses don't contribute to score (remain 0)
+
+          return { ...question, score, maxScore: 1 };
         }
         return question;
       });
 
-      // Recalculate section score
-      const sectionScore = updatedQuestions.reduce(
+      // Calculate section score - only count Yes/No responses, exclude NA
+      const answeredQuestions = updatedQuestions.filter((q) => {
+        const response = responseMap.get(q.id);
+        return response && response.response !== ResponseOption.NA;
+      });
+
+      const sectionScore = answeredQuestions.reduce(
         (sum, q) => sum + q.score,
         0,
       );
-      const maxScore =
-        this.scoringService.calculateSectionMaxScore(updatedQuestions);
+      const maxScore = answeredQuestions.length; // Max score is number of answered questions
 
       return {
         ...section,
@@ -446,7 +467,10 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
       };
     });
 
-    return { ...checklist, sections: updatedSections };
+    return {
+      ...checklist,
+      sections: updatedSections,
+    };
   }
 
   private saveCurrentResponse(): void {
@@ -458,7 +482,7 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
     const formValue = this.responseForm.value;
     const response: AssessmentResponse = {
       questionId: currentQuestion.id,
-      score: formValue.score || 0,
+      response: formValue.response,
       notes: formValue.notes || "",
       timestamp: new Date(),
     };
@@ -469,10 +493,15 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
     );
     updatedResponses.push(response);
 
+    // Calculate total score only from Yes/No responses (exclude NA)
+    const totalScore = updatedResponses
+      .filter((r) => r.response !== ResponseOption.NA)
+      .reduce((sum, r) => sum + (r.response === ResponseOption.YES ? 1 : 0), 0);
+
     const updatedSession: AssessmentSession = {
       ...session,
       responses: updatedResponses,
-      totalScore: updatedResponses.reduce((sum, r) => sum + r.score, 0),
+      totalScore,
     };
 
     this._assessmentSession.set(updatedSession);
@@ -490,27 +519,15 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
 
     if (existingResponse) {
       this.responseForm.patchValue({
-        score: existingResponse.score,
+        response: existingResponse.response,
         notes: existingResponse.notes,
       });
     } else {
       this.responseForm.reset({
-        score: 0,
+        response: null,
         notes: "",
       });
     }
-
-    // Update max score validator
-    const maxScore =
-      this.scoringService.calculateQuestionMaxScore(currentQuestion);
-    this.responseForm
-      .get("score")
-      ?.setValidators([
-        Validators.required,
-        Validators.min(0),
-        Validators.max(maxScore),
-      ]);
-    this.responseForm.get("score")?.updateValueAndValidity();
   }
 
   private saveSession(): void {
@@ -604,14 +621,13 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
   }
 
   public isQuestionAnswered(questionId: string): boolean {
-    return this.getResponseForQuestion(questionId) !== undefined;
+    const response = this.getResponseForQuestion(questionId);
+    return response !== undefined && response.response !== null;
   }
 
   public getMaxScoreForCurrentQuestion(): number {
-    const currentQuestion = this.currentQuestion();
-    return currentQuestion
-      ? this.scoringService.calculateQuestionMaxScore(currentQuestion)
-      : 0;
+    // For Yes/No/NA questions, max score is always 1
+    return 1;
   }
 
   // Organization service computed properties
@@ -743,14 +759,14 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
             type: QuestionType.STANDARD,
             title: "Are safety protocols documented and accessible?",
             score: 0,
-            maxScore: this.scoringService.config().defaultMaxScore,
+            maxScore: 1,
           } as StandardQuestion,
           {
             id: this.idGenerator.generateQuestionId(),
             type: QuestionType.STANDARD,
             title: "Are quality assurance measures in place?",
             score: 0,
-            maxScore: this.scoringService.config().defaultMaxScore,
+            maxScore: 1,
           } as StandardQuestion,
         ],
       },
@@ -765,14 +781,14 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
             type: QuestionType.STANDARD,
             title: "Is staff training up to date?",
             score: 0,
-            maxScore: this.scoringService.config().defaultMaxScore,
+            maxScore: 1,
           } as StandardQuestion,
           {
             id: this.idGenerator.generateQuestionId(),
             type: QuestionType.STANDARD,
             title: "Are competency assessments conducted regularly?",
             score: 0,
-            maxScore: this.scoringService.config().defaultMaxScore,
+            maxScore: 1,
           } as StandardQuestion,
         ],
       },
@@ -781,7 +797,7 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
     // Calculate max scores for sections
     return sections.map((section) => ({
       ...section,
-      maxScore: this.scoringService.calculateSectionMaxScore(section.questions),
+      maxScore: section.questions.length, // Max score is number of questions
     }));
   }
 }

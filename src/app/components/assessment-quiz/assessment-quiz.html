@@ -298,29 +298,38 @@
 
         <!-- Response Form -->
         <form [formGroup]="responseForm" class="response-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Score *</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="score"
-              [min]="0"
-              [max]="getMaxScoreForCurrentQuestion()"
-              required
-            />
-            <mat-hint
-              >Maximum score: {{ getMaxScoreForCurrentQuestion() }}</mat-hint
+          <div class="response-options">
+            <mat-label class="response-label">Your Response *</mat-label>
+            <mat-radio-group
+              formControlName="response"
+              class="response-radio-group"
             >
-            <mat-error *ngIf="responseForm.get('score')?.hasError('required')">
-              Score is required
+              <mat-radio-button
+                [value]="ResponseOption.YES"
+                class="response-option"
+              >
+                Yes
+              </mat-radio-button>
+              <mat-radio-button
+                [value]="ResponseOption.NO"
+                class="response-option"
+              >
+                No
+              </mat-radio-button>
+              <mat-radio-button
+                [value]="ResponseOption.NA"
+                class="response-option"
+              >
+                Not Applicable (NA)
+              </mat-radio-button>
+            </mat-radio-group>
+            <mat-error
+              *ngIf="responseForm.get('response')?.hasError('required')"
+              class="response-error"
+            >
+              Please select Yes, No, or NA
             </mat-error>
-            <mat-error *ngIf="responseForm.get('score')?.hasError('min')">
-              Score must be at least 0
-            </mat-error>
-            <mat-error *ngIf="responseForm.get('score')?.hasError('max')">
-              Score cannot exceed {{ getMaxScoreForCurrentQuestion() }}
-            </mat-error>
-          </mat-form-field>
+          </div>
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Notes (Optional)</mat-label>
             <textarea
@@ -350,9 +359,21 @@
               <div class="sub-question-title mat-body-1">
                 {{ subQuestion.title }}
               </div>
-              <div class="sub-question-score mat-body-2">
-                Score: {{ getResponseForQuestion(subQuestion.id)?.score || 0 }}
-                / {{ scoringService.calculateQuestionMaxScore(subQuestion) }}
+              <div class="sub-question-response mat-body-2">
+                <span
+                  *ngIf="getResponseForQuestion(subQuestion.id)?.response"
+                  class="response-badge"
+                  [class]="'response-' + getResponseForQuestion(subQuestion.id)?.response"
+                >
+                  {{ getResponseForQuestion(subQuestion.id)?.response |
+                  uppercase }}
+                </span>
+                <span
+                  *ngIf="!getResponseForQuestion(subQuestion.id)?.response"
+                  class="response-badge response-unanswered"
+                >
+                  Not Answered
+                </span>
               </div>
               <mat-divider *ngIf="!last"></mat-divider>
             </div>
@@ -435,7 +456,11 @@
               '...' : '' }}</span
             >
             <span class="question-status">
-              <i *ngIf="isQuestionAnswered(question.id)" class="icon-check"></i>
+              <mat-icon
+                *ngIf="isQuestionAnswered(question.id)"
+                class="status-icon"
+                >check_circle</mat-icon
+              >
             </span>
           </div>
         </div>
@@ -447,8 +472,9 @@
       type="button"
       class="toggle-sidebar-btn"
       (click)="toggleQuestionList()"
+      aria-label="Toggle question list"
     >
-      <i class="icon-list"></i>
+      <mat-icon>list</mat-icon>
     </button>
   </div>
 </div>
