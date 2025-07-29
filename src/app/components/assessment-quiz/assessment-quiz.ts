@@ -16,6 +16,25 @@ import {
 } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
+import { MatCardModule } from "@angular/material/card";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatSelectModule } from "@angular/material/select";
+import { MatInputModule } from "@angular/material/input";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatStepperModule } from "@angular/material/stepper";
+import { MatRadioModule } from "@angular/material/radio";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatSnackBarModule, MatSnackBar } from "@angular/material/snack-bar";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatDialogModule } from "@angular/material/dialog";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { Observable } from "rxjs";
+import { map, shareReplay } from "rxjs/operators";
 
 import { ChecklistService } from "../../services/checklist.service";
 import { OrganizationService } from "../../services/organization.service";
@@ -60,7 +79,26 @@ interface AssessmentSession {
 
 @Component({
   selector: "app-assessment-quiz",
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatStepperModule,
+    MatRadioModule,
+    MatCheckboxModule,
+    MatSnackBarModule,
+    MatDividerModule,
+    MatChipsModule,
+    MatTooltipModule,
+    MatDialogModule,
+  ],
   templateUrl: "./assessment-quiz.html",
   styleUrl: "./assessment-quiz.css",
 })
@@ -73,6 +111,23 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
   private readonly organizationService = inject(OrganizationService);
   private readonly idGenerator = inject(IdGeneratorService);
   protected readonly scoringService = inject(ScoringService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
+  // Responsive breakpoints
+  isHandset$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Handset)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
+
+  isTablet$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Tablet)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
 
   // Component state
   private readonly _currentChecklist = signal<Checklist | null>(null);
@@ -598,6 +653,13 @@ export class AssessmentQuiz implements OnInit, OnDestroy {
     if (percentage >= 75) return "good";
     if (percentage >= 60) return "fair";
     return "poor";
+  }
+
+  protected getProgressColor(percentage: number): string {
+    if (percentage >= 90) return "primary";
+    if (percentage >= 75) return "accent";
+    if (percentage >= 60) return "warn";
+    return "warn";
   }
 
   // Helper methods for type-safe template access

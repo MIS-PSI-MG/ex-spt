@@ -1,228 +1,278 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
 import { CommonModule } from "@angular/common";
+import { MatToolbarModule } from "@angular/material/toolbar";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSidenavModule } from "@angular/material/sidenav";
+import { MatListModule } from "@angular/material/list";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { Observable } from "rxjs";
+import { map, shareReplay } from "rxjs/operators";
 
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSidenavModule,
+    MatListModule,
+  ],
   template: `
-    <div class="app-container">
-      <!-- Navigation Header -->
-      <header class="app-header">
-        <div class="header-content">
-          <div class="logo">
-            <h1>📋 Assessment Portal</h1>
-            <span class="tagline">Health Program Checklist System</span>
-          </div>
+    <mat-sidenav-container class="sidenav-container">
+      <mat-sidenav
+        #drawer
+        class="sidenav"
+        fixedInViewport
+        [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+        [mode]="(isHandset$ | async) ? 'over' : 'side'"
+        [opened]="(isHandset$ | async) === false"
+      >
+        <mat-toolbar class="sidenav-toolbar">📋 Assessment Portal</mat-toolbar>
+        <mat-nav-list>
+          <a
+            mat-list-item
+            routerLink="/checklists"
+            routerLinkActive="active-link"
+          >
+            <mat-icon matListItemIcon>checklist</mat-icon>
+            <span matListItemTitle>Checklists</span>
+          </a>
+          <a
+            mat-list-item
+            routerLink="/assessment-quiz"
+            routerLinkActive="active-link"
+          >
+            <mat-icon matListItemIcon>quiz</mat-icon>
+            <span matListItemTitle>Take Assessment</span>
+          </a>
+          <a mat-list-item routerLink="/results" routerLinkActive="active-link">
+            <mat-icon matListItemIcon>analytics</mat-icon>
+            <span matListItemTitle>Results</span>
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
+      <mat-sidenav-content>
+        <mat-toolbar color="primary" class="main-toolbar">
+          <button
+            type="button"
+            aria-label="Toggle sidenav"
+            mat-icon-button
+            (click)="drawer.toggle()"
+            *ngIf="isHandset$ | async"
+          >
+            <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+          </button>
+          <span class="toolbar-title">📋 Assessment Portal</span>
+          <span class="toolbar-subtitle">Health Program Checklist System</span>
+        </mat-toolbar>
 
-          <nav class="main-nav">
-            <a
-              routerLink="/checklists"
-              routerLinkActive="active"
-              class="nav-link"
+        <main class="main-content">
+          <router-outlet></router-outlet>
+        </main>
+
+        <footer class="app-footer">
+          <mat-toolbar class="footer-toolbar">
+            <span
+              >&copy; 2024 Health Assessment System. Built with Angular 20 &
+              Material Design.</span
             >
-              📝 Checklists
-            </a>
-            <a
-              routerLink="/assessment-quiz"
-              routerLinkActive="active"
-              class="nav-link"
-            >
-              ✅ Take Assessment
-            </a>
-            <a routerLink="/results" routerLinkActive="active" class="nav-link">
-              📊 Results
-            </a>
-          </nav>
-        </div>
-      </header>
-
-      <!-- Main Content Area -->
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
-
-      <!-- Footer -->
-      <footer class="app-footer">
-        <div class="footer-content">
-          <p>&copy; 2024 Health Assessment System. Built with Angular 20.</p>
-        </div>
-      </footer>
-    </div>
+          </mat-toolbar>
+        </footer>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   `,
   styles: [
     `
-      .app-container {
-        min-height: 100vh;
+      /* Mobile-first design approach */
+      .sidenav-container {
+        height: 100vh;
         display: flex;
         flex-direction: column;
-        background-color: #f5f7fa;
       }
 
-      .app-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 0;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      .sidenav {
+        width: 100vw;
+        max-width: 280px;
+      }
+
+      .sidenav-toolbar {
+        background: var(--mat-sys-primary);
+        color: var(--mat-sys-on-primary);
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        min-height: 56px;
+      }
+
+      .main-toolbar {
         position: sticky;
         top: 0;
-        z-index: 1000;
+        z-index: 100;
+        box-shadow: var(--mat-sys-level2);
+        padding: 0 8px;
+        min-height: 56px;
       }
 
-      .header-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 80px;
-      }
-
-      .logo h1 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .tagline {
-        font-size: 12px;
-        opacity: 0.8;
-        display: block;
-        margin-top: 2px;
-      }
-
-      .main-nav {
-        display: flex;
-        gap: 8px;
-      }
-
-      .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 12px 20px;
-        color: rgba(255, 255, 255, 0.9);
-        text-decoration: none;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        position: relative;
-      }
-
-      .nav-link:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        transform: translateY(-1px);
-      }
-
-      .nav-link.active {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
+      .toolbar-title {
         font-weight: 600;
+        font-size: 1.125rem;
+        margin-right: 8px;
+        line-height: 1.2;
       }
 
-      .nav-link.active::after {
-        content: "";
-        position: absolute;
-        bottom: -2px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 20px;
-        height: 2px;
-        background: white;
-        border-radius: 1px;
+      .toolbar-subtitle {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        font-weight: 400;
+        display: none;
       }
 
       .main-content {
         flex: 1;
-        min-height: calc(100vh - 140px);
-        padding: 0;
+        padding: 8px;
+        background-color: var(--mat-sys-surface-container-lowest);
+        min-height: calc(100vh - 112px);
+        overflow-x: hidden;
       }
 
       .app-footer {
-        background: #2c3e50;
-        color: #bdc3c7;
         margin-top: auto;
+        flex-shrink: 0;
       }
 
-      .footer-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-        text-align: center;
+      .footer-toolbar {
+        background-color: var(--mat-sys-surface-variant);
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 0.75rem;
+        min-height: 40px;
+        justify-content: center;
+        padding: 0 16px;
       }
 
-      .footer-content p {
-        margin: 0;
-        font-size: 14px;
+      .active-link {
+        background-color: var(--mat-sys-primary-container) !important;
+        color: var(--mat-sys-on-primary-container) !important;
+        border-radius: 8px !important;
       }
 
-      /* Global styles for the app */
-      :host {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
+      /* Navigation list improvements */
+      mat-nav-list {
+        padding: 8px 0;
       }
 
-      /* Responsive Design */
-      @media (max-width: 768px) {
-        .header-content {
-          flex-direction: column;
-          height: auto;
-          padding: 15px 20px;
-          gap: 15px;
+      mat-nav-list a {
+        margin: 4px 8px;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+      }
+
+      mat-nav-list a:hover {
+        background-color: var(--mat-sys-surface-container-high);
+      }
+
+      /* Icon button improvements */
+      .mat-mdc-icon-button {
+        width: 40px;
+        height: 40px;
+        padding: 8px;
+      }
+
+      /* Tablet responsive (768px and up) */
+      @media (min-width: 768px) {
+        .toolbar-subtitle {
+          display: inline;
         }
 
-        .logo h1 {
-          font-size: 20px;
-        }
-
-        .tagline {
-          font-size: 11px;
-        }
-
-        .main-nav {
-          width: 100%;
-          justify-content: center;
-        }
-
-        .nav-link {
-          flex: 1;
-          justify-content: center;
-          font-size: 13px;
-          padding: 10px 16px;
+        .toolbar-title {
+          font-size: 1.25rem;
+          margin-right: 16px;
         }
 
         .main-content {
-          min-height: calc(100vh - 180px);
+          padding: 16px;
+        }
+
+        .main-toolbar {
+          padding: 0 16px;
+          min-height: 64px;
+        }
+
+        .sidenav-toolbar {
+          font-size: 1.125rem;
+          min-height: 64px;
+        }
+
+        .footer-toolbar {
+          min-height: 48px;
+          font-size: 0.875rem;
         }
       }
 
-      @media (max-width: 480px) {
-        .header-content {
-          padding: 12px 15px;
+      /* Desktop responsive (1024px and up) */
+      @media (min-width: 1024px) {
+        .toolbar-title {
+          font-size: 1.375rem;
         }
 
-        .logo h1 {
-          font-size: 18px;
+        .main-content {
+          padding: 24px;
         }
 
-        .nav-link {
-          font-size: 12px;
-          padding: 8px 12px;
+        .sidenav {
+          width: 280px;
+        }
+      }
+
+      /* Large desktop (1200px and up) */
+      @media (min-width: 1200px) {
+        .main-content {
+          padding: 32px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+      }
+
+      /* Accessibility improvements */
+      @media (prefers-reduced-motion: reduce) {
+        mat-nav-list a {
+          transition: none;
+        }
+      }
+
+      /* Focus visible styles */
+      .mat-mdc-button:focus-visible,
+      .mat-mdc-icon-button:focus-visible {
+        outline: 2px solid var(--mat-sys-primary);
+        outline-offset: 2px;
+      }
+
+      /* High contrast support */
+      @media (prefers-contrast: high) {
+        .active-link {
+          border: 2px solid var(--mat-sys-primary) !important;
         }
       }
     `,
   ],
 })
-export class App {
-  protected title = "Health Assessment Portal";
+export class AppComponent implements OnInit {
+  isHandset$!: Observable<boolean>;
+
+  constructor(private breakpointObserver: BreakpointObserver) {}
+
+  ngOnInit() {
+    this.isHandset$ = this.breakpointObserver.observe(Breakpoints.Handset).pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
+  }
 }

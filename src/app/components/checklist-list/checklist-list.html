@@ -1,199 +1,301 @@
 <div class="checklist-list-container">
-  <!-- Header -->
-  <div class="list-header">
-    <div class="header-content">
-      <h2>Checklists</h2>
-      <p class="header-subtitle">
-        Manage and assess your health program checklists
-      </p>
-    </div>
-    <div class="header-actions">
-      <button
-        type="button"
-        class="btn btn-primary"
-        routerLink="/checklists/new"
-      >
-        + Create New Checklist
-      </button>
-    </div>
-  </div>
+  <!-- Header Section with Material Design -->
+  <mat-card class="header-card" appearance="raised">
+    <mat-card-content>
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="mat-display-1">
+            <mat-icon class="header-icon">checklist</mat-icon>
+            Checklists
+          </h1>
+          <p class="mat-body-1 header-subtitle">
+            Manage and assess your health program checklists
+          </p>
+        </div>
+        <div class="header-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            routerLink="/checklists/new"
+            class="create-btn"
+          >
+            <mat-icon>add</mat-icon>
+            <span class="btn-text">Create New</span>
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
+  <!-- Error Alert -->
   @if (checklistService.error()) {
-  <div class="alert alert-error">
-    {{ checklistService.error() }}
-    <button
-      type="button"
-      class="close-btn"
-      (click)="checklistService.clearError()"
-    >
-      ×
-    </button>
-  </div>
-  } @if (checklistService.loading()) {
-  <div class="loading-state">
-    <div class="loading-spinner"></div>
-    <p>Loading checklists...</p>
+  <mat-card class="alert-card error-card" appearance="outlined">
+    <mat-card-content>
+      <div class="alert-content">
+        <mat-icon class="alert-icon" color="warn">error</mat-icon>
+        <span class="alert-message">{{ checklistService.error() }}</span>
+        <button
+          mat-icon-button
+          (click)="checklistService.clearError()"
+          aria-label="Close error"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  }
+
+  <!-- Loading State -->
+  @if (checklistService.loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p class="mat-body-1 loading-text">Loading checklists...</p>
   </div>
   } @else {
-  <!-- Statistics Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-content">
-        <div class="stat-number">
-          {{ checklistService.checklists().length }}
-        </div>
-        <div class="stat-label">Total Checklists</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📊</div>
-      <div class="stat-content">
-        <div class="stat-number">{{ averageCompletionRate() }}%</div>
-        <div class="stat-label">Avg. Completion</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🏥</div>
-      <div class="stat-content">
-        <div class="stat-number">{{ uniqueDepartments().length }}</div>
-        <div class="stat-label">Departments</div>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🎯</div>
-      <div class="stat-content">
-        <div class="stat-number">{{ uniquePrograms().length }}</div>
-        <div class="stat-label">Programs</div>
-      </div>
-    </div>
+  <!-- Statistics Grid using Material Cards -->
+  <div class="stats-container">
+    <mat-grid-list
+      [cols]="(isHandset$ | async) ? 2 : 4"
+      rowHeight="120px"
+      gutterSize="16px"
+    >
+      <mat-grid-tile>
+        <mat-card class="stat-card" appearance="outlined">
+          <mat-card-content>
+            <div class="stat-icon-container primary-bg">
+              <mat-icon class="stat-icon">assignment</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">
+                {{ checklistService.checklists().length }}
+              </div>
+              <div class="stat-label">Total Checklists</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-card class="stat-card" appearance="outlined">
+          <mat-card-content>
+            <div class="stat-icon-container accent-bg">
+              <mat-icon class="stat-icon">analytics</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ averageCompletionRate() }}%</div>
+              <div class="stat-label">Avg. Completion</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-card class="stat-card" appearance="outlined">
+          <mat-card-content>
+            <div class="stat-icon-container success-bg">
+              <mat-icon class="stat-icon">business</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ uniqueDepartments().length }}</div>
+              <div class="stat-label">Departments</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+
+      <mat-grid-tile>
+        <mat-card class="stat-card" appearance="outlined">
+          <mat-card-content>
+            <div class="stat-icon-container warn-bg">
+              <mat-icon class="stat-icon">track_changes</mat-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-number">{{ uniquePrograms().length }}</div>
+              <div class="stat-label">Programs</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </mat-grid-tile>
+    </mat-grid-list>
   </div>
 
   <!-- Checklists Grid -->
   @if (checklistService.checklists().length > 0) {
-  <div class="checklists-grid">
-    @for (checklist of checklistService.checklists(); track checklist.id) {
-    <div class="checklist-card">
-      <div class="card-header">
-        <div class="header-info">
-          <h3>{{ checklist.healthProgram }}</h3>
-          <div class="metadata">
-            <span class="badge badge-primary">{{ checklist.department }}</span>
-            <span class="badge badge-secondary"
-              >{{ checklist.organizationalLevel }}</span
+  <div class="checklists-container">
+    <div class="checklists-grid" [class.mobile-grid]="isHandset$ | async">
+      @for (checklist of checklistService.checklists(); track checklist.id) {
+      <mat-card class="checklist-card" appearance="outlined">
+        <!-- Card Header -->
+        <mat-card-header>
+          <div class="card-header-content">
+            <mat-card-title class="checklist-title">
+              {{ checklist.healthProgram }}
+            </mat-card-title>
+            <mat-card-subtitle class="checklist-subtitle">
+              <mat-chip-set>
+                <mat-chip class="department-chip">
+                  <mat-icon matChipAvatar>business</mat-icon>
+                  {{ checklist.department }}
+                </mat-chip>
+                <mat-chip class="level-chip">
+                  <mat-icon matChipAvatar>layers</mat-icon>
+                  {{ checklist.organizationalLevel }}
+                </mat-chip>
+              </mat-chip-set>
+            </mat-card-subtitle>
+          </div>
+          <div class="completion-indicator">
+            <div
+              class="circular-progress"
+              [attr.data-progress]="getCompletionPercentage(checklist)"
+              [class]="'progress-' + getScoreClass(getCompletionPercentage(checklist))"
             >
-          </div>
-        </div>
-        <div class="completion-score">
-          <div
-            class="score-circle"
-            [class]="getScoreClass(getCompletionPercentage(checklist))"
-          >
-            <span>{{ getCompletionPercentage(checklist) }}%</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card-body">
-        <div class="checklist-stats">
-          <div class="stat-row">
-            <span class="stat-label">Sections:</span>
-            <span class="stat-value">{{ checklist.sections.length }}</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Questions:</span>
-            <span class="stat-value">{{ getTotalQuestions(checklist) }}</span>
-          </div>
-          <div class="stat-row">
-            <span class="stat-label">Score:</span>
-            <span class="stat-value"
-              >{{ getTotalScore(checklist) }}/{{ getMaxScore(checklist) }}</span
-            >
-          </div>
-          @if (checklist.updatedAt) {
-          <div class="stat-row">
-            <span class="stat-label">Updated:</span>
-            <span class="stat-value"
-              >{{ formatDate(checklist.updatedAt) }}</span
-            >
-          </div>
-          }
-        </div>
-
-        <div class="sections-preview">
-          <h4>Sections Overview</h4>
-          <div class="sections-list">
-            @for (section of checklist.sections.slice(0, 3); track section.id) {
-            <div class="section-preview">
-              <span class="section-name">{{ section.title }}</span>
-              <div class="section-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    [style.width.%]="getSectionPercentage(section)"
-                    [class]="getProgressClass(getSectionPercentage(section))"
-                  ></div>
-                </div>
-                <span class="percentage"
-                  >{{ getSectionPercentage(section) }}%</span
-                >
-              </div>
+              <span class="progress-text"
+                >{{ getCompletionPercentage(checklist) }}%</span
+              >
             </div>
-            } @if (checklist.sections.length > 3) {
-            <div class="more-sections">
-              +{{ checklist.sections.length - 3 }} more sections
+          </div>
+        </mat-card-header>
+
+        <!-- Card Content -->
+        <mat-card-content>
+          <!-- Statistics List -->
+          <div class="checklist-stats">
+            <div class="stat-row">
+              <mat-icon class="stat-row-icon">folder</mat-icon>
+              <span class="stat-label">Sections:</span>
+              <span class="stat-value">{{ checklist.sections.length }}</span>
+            </div>
+            <mat-divider></mat-divider>
+
+            <div class="stat-row">
+              <mat-icon class="stat-row-icon">help_outline</mat-icon>
+              <span class="stat-label">Questions:</span>
+              <span class="stat-value">{{ getTotalQuestions(checklist) }}</span>
+            </div>
+            <mat-divider></mat-divider>
+
+            <div class="stat-row">
+              <mat-icon class="stat-row-icon">score</mat-icon>
+              <span class="stat-label">Score:</span>
+              <span class="stat-value">
+                {{ getTotalScore(checklist) }}/{{ getMaxScore(checklist) }}
+              </span>
+            </div>
+
+            @if (checklist.updatedAt) {
+            <mat-divider></mat-divider>
+            <div class="stat-row">
+              <mat-icon class="stat-row-icon">update</mat-icon>
+              <span class="stat-label">Updated:</span>
+              <span class="stat-value"
+                >{{ formatDate(checklist.updatedAt) }}</span
+              >
             </div>
             }
           </div>
-        </div>
-      </div>
 
-      <div class="card-footer">
-        <div class="action-buttons">
-          <button
-            type="button"
-            class="btn btn-outline btn-sm"
-            [routerLink]="['/checklists/edit', checklist.id]"
-            (click)="setCurrentChecklist(checklist)"
+          <!-- Sections Preview -->
+          <div class="sections-preview">
+            <h4 class="mat-subtitle-1 sections-title">
+              <mat-icon>list_alt</mat-icon>
+              Sections Overview
+            </h4>
+
+            @for (section of checklist.sections.slice(0, 3); track section.id) {
+            <div class="section-item">
+              <div class="section-info">
+                <span class="section-name">{{ section.title }}</span>
+                <span class="section-percentage"
+                  >{{ getSectionPercentage(section) }}%</span
+                >
+              </div>
+              <mat-progress-bar
+                [value]="getSectionPercentage(section)"
+                [color]="getProgressColor(getSectionPercentage(section))"
+                class="section-progress"
+              ></mat-progress-bar>
+            </div>
+            } @if (checklist.sections.length > 3) {
+            <div class="more-sections mat-body-2">
+              <mat-icon>more_horiz</mat-icon>
+              {{ checklist.sections.length - 3 }} more sections
+            </div>
+            }
+          </div>
+        </mat-card-content>
+
+        <!-- Card Actions -->
+        <mat-card-actions class="card-actions" align="start">
+          <div
+            class="action-buttons-container"
+            [class.mobile-actions]="isHandset$ | async"
           >
-            ✏️ Edit
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary btn-sm"
-            [routerLink]="['/assessment', checklist.id]"
-            (click)="setCurrentChecklist(checklist)"
-          >
-            📝 Assess
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary btn-sm"
-            (click)="viewResults(checklist)"
-          >
-            📊 Results
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger btn-sm"
-            (click)="deleteChecklist(checklist)"
-            [disabled]="checklistService.loading()"
-          >
-            🗑️ Delete
-          </button>
-        </div>
-      </div>
+            <button
+              mat-button
+              color="primary"
+              [routerLink]="['/checklists/edit', checklist.id]"
+              (click)="setCurrentChecklist(checklist)"
+            >
+              <mat-icon>edit</mat-icon>
+              <span class="btn-text">Edit</span>
+            </button>
+
+            <button
+              mat-raised-button
+              color="primary"
+              [routerLink]="['/assessment', checklist.id]"
+              (click)="setCurrentChecklist(checklist)"
+            >
+              <mat-icon>assignment</mat-icon>
+              <span class="btn-text">Assess</span>
+            </button>
+
+            <button mat-button color="accent" (click)="viewResults(checklist)">
+              <mat-icon>bar_chart</mat-icon>
+              <span class="btn-text">Results</span>
+            </button>
+
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="deleteChecklist(checklist)"
+              [disabled]="checklistService.loading()"
+              matTooltip="Delete checklist"
+              class="delete-btn"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </mat-card-actions>
+      </mat-card>
+      }
     </div>
-    }
   </div>
   } @else {
-  <div class="empty-state">
-    <div class="empty-icon">📋</div>
-    <h3>No Checklists Found</h3>
-    <p>Get started by creating your first health program checklist.</p>
-    <button type="button" class="btn btn-primary" routerLink="/checklists/new">
-      Create Your First Checklist
-    </button>
-  </div>
+  <!-- Empty State -->
+  <mat-card class="empty-state-card" appearance="outlined">
+    <mat-card-content>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <mat-icon class="large-icon">assignment</mat-icon>
+        </div>
+        <h2 class="mat-headline-5">No Checklists Found</h2>
+        <p class="mat-body-1">
+          Get started by creating your first health program checklist.
+        </p>
+        <button
+          mat-raised-button
+          color="primary"
+          routerLink="/checklists/new"
+          class="empty-state-btn"
+        >
+          <mat-icon>add</mat-icon>
+          Create Your First Checklist
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
   } }
 </div>

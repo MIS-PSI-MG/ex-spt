@@ -2,6 +2,20 @@ import { Component, OnInit, OnDestroy, inject, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { Subject, takeUntil } from "rxjs";
+import { MatCardModule } from "@angular/material/card";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatBadgeModule } from "@angular/material/badge";
+import { MatGridListModule } from "@angular/material/grid-list";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatSnackBarModule, MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialogModule, MatDialog } from "@angular/material/dialog";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { Observable } from "rxjs";
+import { map, shareReplay } from "rxjs/operators";
 
 import { ChecklistService } from "../../services/checklist.service";
 import {
@@ -12,13 +26,45 @@ import {
 
 @Component({
   selector: "app-checklist-list",
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+    MatChipsModule,
+    MatBadgeModule,
+    MatGridListModule,
+    MatDividerModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: "./checklist-list.html",
   styleUrl: "./checklist-list.css",
 })
 export class ChecklistList implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   protected readonly checklistService = inject(ChecklistService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
+  // Responsive breakpoints
+  isHandset$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Handset)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
+
+  isTablet$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Tablet)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
 
   // Computed properties
   protected readonly averageCompletionRate = computed(() => {
@@ -61,6 +107,16 @@ export class ChecklistList implements OnInit, OnDestroy {
       await this.checklistService.loadChecklists();
     } catch (error) {
       console.error("Failed to load checklists:", error);
+      this.snackBar
+        .open("Failed to load checklists", "Retry", {
+          duration: 5000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        })
+        .onAction()
+        .subscribe(() => {
+          this.loadChecklists();
+        });
     }
   }
 
@@ -69,17 +125,38 @@ export class ChecklistList implements OnInit, OnDestroy {
   }
 
   protected async deleteChecklist(checklist: Checklist): Promise<void> {
-    if (
-      confirm(
-        `Are you sure you want to delete the checklist "${checklist.healthProgram}"?`,
-      )
-    ) {
+    const confirmed = await this.showConfirmDialog(
+      "Delete Checklist",
+      `Are you sure you want to delete the checklist "${checklist.healthProgram}"? This action cannot be undone.`,
+    );
+
+    if (confirmed) {
       try {
         await this.checklistService.deleteChecklist(checklist.id);
+        this.snackBar.open("Checklist deleted successfully", "Close", {
+          duration: 3000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        });
       } catch (error) {
         console.error("Failed to delete checklist:", error);
+        this.snackBar.open("Failed to delete checklist", "Close", {
+          duration: 5000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        });
       }
     }
+  }
+
+  private async showConfirmDialog(
+    title: string,
+    message: string,
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      // For now, use simple confirm. In a full implementation, you'd use MatDialog
+      resolve(confirm(message));
+    });
   }
 
   protected viewResults(checklist: Checklist): void {
@@ -133,5 +210,12 @@ export class ChecklistList implements OnInit, OnDestroy {
       month: "short",
       day: "numeric",
     });
+  }
+
+  protected getProgressColor(percentage: number): string {
+    if (percentage >= 90) return "primary";
+    if (percentage >= 75) return "accent";
+    if (percentage >= 60) return "warn";
+    return "warn";
   }
 }

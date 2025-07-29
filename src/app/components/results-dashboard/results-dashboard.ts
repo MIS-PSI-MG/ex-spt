@@ -28,6 +28,23 @@ import {
   ApexFill,
   ApexStroke,
 } from "ng-apexcharts";
+import { MatCardModule } from "@angular/material/card";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatSelectModule } from "@angular/material/select";
+import { MatInputModule } from "@angular/material/input";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatExpansionModule } from "@angular/material/expansion";
+import { MatGridListModule } from "@angular/material/grid-list";
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatSnackBarModule, MatSnackBar } from "@angular/material/snack-bar";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { Observable } from "rxjs";
+import { map, shareReplay } from "rxjs/operators";
 
 import {
   ChecklistService,
@@ -63,7 +80,25 @@ export type ChartOptions = {
 
 @Component({
   selector: "app-results-dashboard",
-  imports: [CommonModule, ReactiveFormsModule, NgApexchartsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NgApexchartsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatChipsModule,
+    MatDividerModule,
+    MatExpansionModule,
+    MatGridListModule,
+    MatTooltipModule,
+    MatSnackBarModule,
+  ],
   templateUrl: "./results-dashboard.html",
   styleUrl: "./results-dashboard.css",
 })
@@ -76,6 +111,23 @@ export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   protected readonly checklistService = inject(ChecklistService);
   private readonly organizationService = inject(OrganizationService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly breakpointObserver = inject(BreakpointObserver);
+
+  // Responsive breakpoints
+  isHandset$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Handset)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
+
+  isTablet$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Tablet)
+    .pipe(
+      map((result) => result.matches),
+      shareReplay(),
+    );
 
   filterForm!: FormGroup;
   private readonly _expandedSections = signal<Set<string>>(new Set());
@@ -233,6 +285,16 @@ export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
       await this.checklistService.loadChecklists();
     } catch (error) {
       console.error("Failed to load checklists:", error);
+      this.snackBar
+        .open("Failed to load results data", "Retry", {
+          duration: 5000,
+          horizontalPosition: "center",
+          verticalPosition: "bottom",
+        })
+        .onAction()
+        .subscribe(() => {
+          this.loadData();
+        });
     }
   }
 
@@ -458,6 +520,12 @@ export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+
+    this.snackBar.open("Results exported successfully", "Close", {
+      duration: 3000,
+      horizontalPosition: "center",
+      verticalPosition: "bottom",
+    });
   }
 
   protected exportResults(): void {
@@ -483,5 +551,18 @@ export class ResultsDashboard implements OnInit, OnDestroy, AfterViewInit {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+
+    this.snackBar.open("All results exported successfully", "Close", {
+      duration: 3000,
+      horizontalPosition: "center",
+      verticalPosition: "bottom",
+    });
+  }
+
+  protected getProgressColor(percentage: number): string {
+    if (percentage >= 90) return "primary";
+    if (percentage >= 75) return "accent";
+    if (percentage >= 60) return "warn";
+    return "warn";
   }
 }
