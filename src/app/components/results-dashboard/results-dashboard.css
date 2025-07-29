@@ -5,7 +5,8 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
+  min-height: 100vh;
 }
 
 /* Header Card */
@@ -115,14 +116,25 @@
 
 .filter-row {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
   align-items: flex-end;
+  margin-bottom: 16px;
 }
 
 .filter-field {
   flex: 1;
-  min-width: 200px;
+  min-width: 220px;
+  margin-bottom: 0;
+}
+
+/* Fix Material form field spacing in filters */
+.filters-form .mat-mdc-form-field {
+  margin-bottom: 16px;
+}
+
+.filters-form .mat-mdc-form-field:last-child {
+  margin-bottom: 0;
 }
 
 /* Chart Card */
@@ -166,7 +178,8 @@
   justify-content: space-between;
   align-items: flex-start;
   width: 100%;
-  gap: 16px;
+  gap: 20px;
+  margin-bottom: 12px;
 }
 
 .header-info {
@@ -231,7 +244,16 @@
 
 /* Sections Accordion */
 .sections-accordion {
-  margin-top: 16px;
+  margin-top: 20px;
+}
+
+/* Fix accordion panel spacing */
+.sections-accordion .mat-expansion-panel {
+  margin-bottom: 8px;
+}
+
+.sections-accordion .mat-expansion-panel:last-child {
+  margin-bottom: 0;
 }
 
 .sections-list {
@@ -500,8 +522,8 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .results-dashboard {
-    padding: 8px;
-    gap: 16px;
+    padding: 12px;
+    gap: 24px;
   }
 
   .results-grid {
@@ -512,16 +534,19 @@
   .filter-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 16px;
   }
 
   .filter-field {
     min-width: unset;
+    width: 100%;
   }
 
   .result-header-content {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
+    margin-bottom: 16px;
   }
 
   .overall-score {
@@ -586,6 +611,11 @@
   }
 
   .bar-fill {
+    border: 1px solid var(--mat-sys-outline);
+  }
+
+  /* Prevent double borders on cards */
+  .result-card {
     border: 1px solid var(--mat-sys-outline);
   }
 }

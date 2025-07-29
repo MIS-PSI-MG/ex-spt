@@ -10,10 +10,9 @@
 
 /* Header Card */
 .header-card {
-  position: sticky;
-  top: 16px;
-  z-index: 10;
+  position: relative;
   background: var(--mat-sys-surface);
+  margin-bottom: 8px;
 }
 
 .header-card .mat-mdc-card-header {
@@ -191,8 +190,8 @@
 
 /* Question Cards */
 .question-card {
-  border: 1px solid var(--mat-sys-outline-variant);
   transition: all 0.2s ease;
+  margin-bottom: 8px;
 }
 
 .question-card:hover {
@@ -369,7 +368,7 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .question-card {
-    border-width: 2px;
+    border: 1px solid var(--mat-sys-outline);
   }
 
   .data-group-card {

@@ -5,7 +5,8 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  min-height: 100vh;
 }
 
 /* Error Card */
@@ -53,6 +54,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
+  padding: 4px 0;
 }
 
 .tab-title {
@@ -60,16 +62,29 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
 }
 
 .tab-score {
   font-size: 12px;
   opacity: 0.7;
   white-space: nowrap;
+  margin-left: auto;
 }
 
 .section-tabs {
   width: 100%;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.section-tabs .mat-mdc-tab-group {
+  margin-bottom: 0;
+}
+
+.section-tabs .mat-mdc-tab-body-wrapper {
+  display: none;
 }
 
 /* Question Header */
@@ -129,18 +144,46 @@
 .question-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  padding: 16px 0;
 }
 
 .full-width {
   width: 100%;
+  max-width: 100%;
+}
+
+/* Fix Material form field spacing and prevent double borders */
+.question-form .mat-mdc-form-field {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.question-form .mat-mdc-form-field:last-child {
+  margin-bottom: 0;
+}
+
+/* Prevent form field outline conflicts */
+.question-form .mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border: none !important;
+  outline: none !important;
+}
+
+.question-form .mat-mdc-form-field .mdc-text-field--outlined {
+  border: none !important;
+}
+
+.question-form .mat-mdc-form-field .mat-mdc-form-field-focus-overlay {
+  display: none;
 }
 
 .standard-question,
 .data-control-question {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  padding: 16px 0;
+  border-radius: 8px;
 }
 
 .slider-section {
@@ -152,11 +195,19 @@
 .slider-section label {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  display: block;
 }
 
 .score-slider {
   width: 100%;
+  margin: 16px 0;
+}
+
+/* Ensure proper spacing around sliders */
+.slider-section {
+  padding: 8px 0;
+  margin: 16px 0;
 }
 
 /* Sub-questions */
@@ -189,7 +240,12 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  padding: 16px 24px;
+  padding: 20px 24px;
+  min-height: 72px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  position: relative;
+  z-index: 10;
 }
 
 .nav-left,
@@ -244,12 +300,28 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .assessment-container {
-    padding: 8px;
+    padding: 12px;
+    gap: 20px;
+  }
+
+  .section-tabs {
+    margin-bottom: 20px;
   }
 
   .navigation-actions {
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  /* Improve mobile form spacing */
+  .question-form {
+    gap: 20px;
+    padding: 12px 0;
+  }
+
+  .slider-section {
+    margin: 12px 0;
   }
 
   .nav-left,
@@ -289,6 +361,15 @@
     flex-direction: column;
     gap: 4px;
     text-align: center;
+    align-items: center;
+  }
+
+  .tab-title {
+    text-align: center;
+  }
+
+  .tab-score {
+    margin-left: 0;
   }
 }
 

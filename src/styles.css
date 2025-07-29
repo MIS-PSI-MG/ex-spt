@@ -4,6 +4,9 @@
 /* Import Angular Material theme */
 @import "./custom-theme.scss";
 
+/* Import Material Design fixes for UI bugs */
+@import "./material-fixes.css";
+
 /* CSS Reset with Mobile-First Approach */
 * {
   margin: 0;
@@ -181,6 +184,35 @@ p {
   margin-bottom: var(--spacing-md);
 }
 
+/* Prevent double borders and outline conflicts on Material form fields */
+.mat-mdc-form-field .mat-mdc-text-field-wrapper {
+  border: none !important;
+  outline: none !important;
+}
+
+.mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline {
+  border-width: 1px !important;
+}
+
+.mat-mdc-form-field .mdc-text-field--focused .mdc-notched-outline {
+  border-width: 2px !important;
+}
+
+/* Remove any additional borders that might cause double outlines */
+.mat-mdc-form-field .mat-mdc-form-field-focus-overlay {
+  display: none;
+}
+
+.mat-mdc-form-field .mat-mdc-form-field-ripple {
+  display: none;
+}
+
+/* Ensure form field containers don't add extra borders */
+.mat-mdc-form-field-flex {
+  border: none !important;
+  outline: none !important;
+}
+
 .mat-mdc-form-field.half-width {
   width: 100%;
 }
@@ -219,6 +251,9 @@ p {
 
 .mat-mdc-card-actions {
   padding: 0 var(--spacing-md) var(--spacing-md);
+  min-height: 52px;
+  display: flex;
+  align-items: center;
 }
 
 /* Toolbar optimizations */
@@ -254,6 +289,7 @@ p {
 .mat-mdc-snack-bar-container {
   margin: var(--spacing-sm);
   border-radius: var(--border-radius-md);
+  z-index: 1100 !important;
 }
 
 /* Accessibility improvements */
@@ -269,18 +305,40 @@ p {
   border: 0;
 }
 
-/* Focus visible styles for better keyboard navigation */
-.mat-mdc-button:focus-visible,
-.mat-mdc-icon-button:focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
-  border-radius: var(--border-radius-md);
+/* Z-index management to prevent overlays */
+.mat-mdc-card {
+  position: relative;
+  z-index: 1;
 }
 
+.mat-mdc-dialog-container {
+  z-index: 1000;
+}
+
+.mat-mdc-snack-bar-container {
+  z-index: 1100;
+}
+
+.mat-mdc-menu-panel {
+  z-index: 1200;
+}
+
+/* Prevent sticky elements from overlapping content */
+.mat-toolbar.mat-primary {
+  z-index: 100;
+}
+
+/* Focus visible styles for better keyboard navigation */
+/* Remove custom focus styles to prevent conflicts with Material Design built-in focus indicators */
+.mat-mdc-button:focus-visible,
+.mat-mdc-icon-button:focus-visible {
+  /* Material components handle their own focus styles */
+}
+
+/* Remove form field focus outline to prevent double borders */
 .mat-mdc-form-field:focus-within {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
-  border-radius: var(--border-radius-md);
+  /* Material form fields handle their own focus styles */
+  outline: none;
 }
 
 /* Loading states */
@@ -291,6 +349,8 @@ p {
   align-items: center;
   padding: var(--spacing-xxl) var(--spacing-md);
   min-height: 200px;
+  position: relative;
+  z-index: 10;
 }
 
 .loading-text {
@@ -475,8 +535,13 @@ p {
     border: 1px solid var(--mat-sys-outline);
   }
 
-  .mat-mdc-button {
+  .mat-mdc-button:not(.mat-mdc-outlined-button) {
     border: 1px solid var(--mat-sys-outline);
+  }
+
+  /* Prevent double borders on form fields in high contrast */
+  .mat-mdc-form-field .mdc-text-field--outlined .mdc-notched-outline {
+    border-width: 1px !important;
   }
 }
 
