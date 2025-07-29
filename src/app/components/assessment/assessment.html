@@ -1,0 +1,310 @@
+<div class="assessment-container">
+  <!-- Assessment Header -->
+  <div class="assessment-header">
+    <div class="header-info">
+      <h2>Assessment: {{ checklist()?.healthProgram }}</h2>
+      <div class="checklist-meta">
+        <span class="meta-item">{{ checklist()?.department }}</span>
+        <span class="meta-item">{{ checklist()?.organizationalLevel }}</span>
+      </div>
+    </div>
+    <div class="progress-info">
+      <div class="progress-stats">
+        <span>Progress: {{ completionPercentage() }}%</span>
+        <span>Score: {{ totalCurrentScore() }}/{{ totalMaxScore() }}</span>
+      </div>
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          [style.width.%]="completionPercentage()"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  @if (checklistService.error()) {
+  <div class="alert alert-error">
+    {{ checklistService.error() }}
+    <button
+      type="button"
+      class="close-btn"
+      (click)="checklistService.clearError()"
+    >
+      ×
+    </button>
+  </div>
+  } @if (checklist()) {
+  <form [formGroup]="assessmentForm" class="assessment-form">
+    <!-- Section Navigation -->
+    <div class="section-nav">
+      <h3>Sections</h3>
+      <div class="nav-pills">
+        @for ( section of assessmentSections(); track section.id; let i = $index
+        ) {
+        <button
+          type="button"
+          class="nav-pill"
+          [class.active]="currentSectionIndex() === i"
+          [class.completed]="section.completed"
+          (click)="setCurrentSection(i)"
+        >
+          <span class="section-number">{{ i + 1 }}</span>
+          <span class="section-title">{{ section.title }}</span>
+          <span class="section-score"
+            >{{ section.currentScore }}/{{ section.maxScore }}</span
+          >
+        </button>
+        }
+      </div>
+    </div>
+
+    <!-- Current Section -->
+    @if (currentSection()) {
+    <div class="current-section">
+      <div class="section-header">
+        <h3>{{ currentSection()!.title }}</h3>
+        <div class="section-progress">
+          <span
+            >{{ answeredQuestionsInCurrentSection() }}/{{
+            currentSection()!.questions.length }} questions answered</span
+          >
+          <span
+            >Score: {{ currentSection()!.currentScore }}/{{
+            currentSection()!.maxScore }}</span
+          >
+        </div>
+      </div>
+
+      <div formArrayName="sections">
+        <div [formGroupName]="currentSectionIndex()">
+          <div formArrayName="questions" class="questions-container">
+            @for ( question of currentSection()!.questions; track question.id;
+            let questionIndex = $index ) {
+            <div [formGroupName]="questionIndex" class="question-card">
+              <div class="question-header">
+                <div class="question-info">
+                  <span class="question-number">Q{{ questionIndex + 1 }}</span>
+                  <span class="question-type"
+                    >{{ getQuestionTypeLabel(question.type) }}</span
+                  >
+                  @if (question.answered) {
+                  <span class="question-status answered">✓ Answered</span>
+                  } @else {
+                  <span class="question-status unanswered">○ Not Answered</span>
+                  }
+                </div>
+                <div class="question-score">
+                  <span
+                    >Score: {{ question.userScore }}/{{ question.maxScore
+                    }}</span
+                  >
+                </div>
+              </div>
+
+              <div class="question-content">
+                <h4>{{ question.title }}</h4>
+
+                <!-- Standard Question -->
+                @if (isStandardQuestion(question)) {
+                <div class="standard-question">
+                  <div class="score-input-group">
+                    <label for="score-{{ questionIndex }}"
+                      >Your Score (0-{{ question.maxScore }}):</label
+                    >
+                    <input
+                      id="score-{{ questionIndex }}"
+                      type="number"
+                      formControlName="userScore"
+                      class="score-input"
+                      [min]="0"
+                      [max]="question.maxScore"
+                      (input)="
+                                onScoreChange(
+                                  currentSectionIndex(),
+                                  questionIndex,
+                                  $event
+                                )
+                              "
+                    />
+                    <div class="score-slider">
+                      <input
+                        type="range"
+                        formControlName="userScore"
+                        [min]="0"
+                        [max]="question.maxScore"
+                        class="slider"
+                        (input)="
+                                  onScoreChange(
+                                    currentSectionIndex(),
+                                    questionIndex,
+                                    $event
+                                  )
+                                "
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Sub-questions if any -->
+                  @if ( question.subQuestions && question.subQuestions.length >
+                  0 ) {
+                  <div class="sub-questions">
+                    <h5>Related Questions:</h5>
+                    @for ( subQuestion of question.subQuestions; track
+                    subQuestion.id ) {
+                    <div class="sub-question-item">
+                      <span>{{ subQuestion.title }}</span>
+                      <span class="sub-score"
+                        >{{ subQuestion.score }}/{{ subQuestion.maxScore
+                        }}</span
+                      >
+                    </div>
+                    }
+                  </div>
+                  }
+                </div>
+                }
+
+                <!-- Data Control Question -->
+                @if (isDataControlQuestion(question)) {
+                <div class="data-control-question">
+                  <div class="data-info">
+                    <div class="data-row">
+                      <label>Indicator:</label>
+                      <span>{{ question.indicator }}</span>
+                    </div>
+                    <div class="data-row">
+                      <label>Month:</label>
+                      <span>{{ formatMonth(question.month) }}</span>
+                    </div>
+                    <div class="data-row">
+                      <label>Data Source:</label>
+                      <span
+                        >{{ question.dataSource.name }} ({{
+                        question.dataSource.value }})</span
+                      >
+                    </div>
+                    <div class="data-row">
+                      <label>Data Count:</label>
+                      <span
+                        >{{ question.dataCount.name }} ({{
+                        question.dataCount.value }})</span
+                      >
+                    </div>
+                    <div class="data-row">
+                      <label>Has Data Difference:</label>
+                      <span
+                        class="data-difference"
+                        [class.has-difference]="
+                                  question.hasDataDifference
+                                "
+                      >
+                        {{ question.hasDataDifference ? "Yes" : "No" }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="score-input-group">
+                    <label for="data-score-{{ questionIndex }}"
+                      >Assessment Score (0-{{ question.maxScore }}):</label
+                    >
+                    <input
+                      id="data-score-{{ questionIndex }}"
+                      type="number"
+                      formControlName="userScore"
+                      class="score-input"
+                      [min]="0"
+                      [max]="question.maxScore"
+                      (input)="
+                                onScoreChange(
+                                  currentSectionIndex(),
+                                  questionIndex,
+                                  $event
+                                )
+                              "
+                    />
+                    <div class="score-slider">
+                      <input
+                        type="range"
+                        formControlName="userScore"
+                        [min]="0"
+                        [max]="question.maxScore"
+                        class="slider"
+                        (input)="
+                                  onScoreChange(
+                                    currentSectionIndex(),
+                                    questionIndex,
+                                    $event
+                                  )
+                                "
+                      />
+                    </div>
+                  </div>
+                </div>
+                }
+
+                <!-- Question Notes -->
+                <div class="question-notes">
+                  <label for="notes-{{ questionIndex }}"
+                    >Notes (optional):</label
+                  >
+                  <textarea
+                    id="notes-{{ questionIndex }}"
+                    formControlName="notes"
+                    class="notes-textarea"
+                    placeholder="Add any observations or comments..."
+                    rows="3"
+                  >
+                  </textarea>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Navigation -->
+      <div class="section-navigation">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="currentSectionIndex() === 0"
+          (click)="previousSection()"
+        >
+          ← Previous Section
+        </button>
+
+        <div class="section-actions">
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="saveProgress()"
+          >
+            Save Progress
+          </button>
+
+          @if ( currentSectionIndex() === assessmentSections().length - 1 ) {
+          <button
+            type="button"
+            class="btn btn-success"
+            [disabled]="!isAssessmentComplete()"
+            (click)="completeAssessment()"
+          >
+            Complete Assessment
+          </button>
+          } @else {
+          <button type="button" class="btn btn-primary" (click)="nextSection()">
+            Next Section →
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+    }
+  </form>
+  } @else {
+  <div class="loading-state">
+    <p>Loading assessment...</p>
+  </div>
+  }
+</div>

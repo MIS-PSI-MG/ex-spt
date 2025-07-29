@@ -1,0 +1,321 @@
+<div class="results-dashboard">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Assessment Results Dashboard</h1>
+      <p class="header-subtitle">
+        Comprehensive view of checklist assessments across departments and
+        organizational levels
+      </p>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-card">
+        <div class="stat-number">{{ totalAssessments() }}</div>
+        <div class="stat-label">Total Assessments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ averageScore() }}%</div>
+        <div class="stat-label">Average Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ completedAssessments() }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+  </div>
+
+  @if (checklistService.error()) {
+  <div class="alert alert-error">
+    {{ checklistService.error() }}
+    <button
+      type="button"
+      class="close-btn"
+      (click)="checklistService.clearError()"
+    >
+      ×
+    </button>
+  </div>
+  }
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="filter-group">
+        <label for="healthProgram">Health Program</label>
+        <select
+          id="healthProgram"
+          formControlName="healthProgram"
+          class="filter-select"
+        >
+          <option value="">All Programs</option>
+          @for (program of availableHealthPrograms(); track program) {
+          <option [value]="program">{{ program }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="organizationalLevel">Organizational Level</label>
+        <select
+          id="organizationalLevel"
+          formControlName="organizationalLevel"
+          class="filter-select"
+        >
+          <option value="">All Levels</option>
+          @for (level of availableOrganizationalLevels(); track level) {
+          <option [value]="level">{{ level }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="department">Department</label>
+        <select
+          id="department"
+          formControlName="department"
+          class="filter-select"
+        >
+          <option value="">All Departments</option>
+          @for (dept of availableDepartments(); track dept) {
+          <option [value]="dept">{{ dept }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button type="button" class="btn btn-outline" (click)="clearFilters()">
+          Clear Filters
+        </button>
+        <button type="button" class="btn btn-primary" (click)="exportResults()">
+          Export Results
+        </button>
+      </div>
+    </form>
+  </div>
+
+  @if (checklistService.loading()) {
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading assessment results...</p>
+  </div>
+  } @else {
+  <!-- Results Grid -->
+  <div class="results-grid">
+    @for ( grouping of filteredResultsGrouping(); track grouping.department +
+    "-" + grouping.organizationalLevel ) {
+    <div class="result-card">
+      <div class="result-header">
+        <div class="header-info">
+          <h3>{{ grouping.department }}</h3>
+          <span class="org-level">{{ grouping.organizationalLevel }}</span>
+        </div>
+        <div class="overall-score">
+          <div
+            class="score-circle"
+            [class]="
+                  getScoreClass(grouping.summary.completionPercentage)
+                "
+          >
+            <span class="score-value"
+              >{{ grouping.summary.completionPercentage.toFixed(0) }}%</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="result-summary">
+        <div class="summary-item">
+          <span class="label">Total Score:</span>
+          <span class="value"
+            >{{ grouping.summary.totalScore }}/{{
+            grouping.summary.maxPossibleScore }}</span
+          >
+        </div>
+        <div class="summary-item">
+          <span class="label">Sections:</span>
+          <span class="value">{{ grouping.summary.sectionCount }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Questions:</span>
+          <span class="value">{{ grouping.summary.questionCount }}</span>
+        </div>
+        @if (grouping.summary.lastUpdated) {
+        <div class="summary-item">
+          <span class="label">Last Updated:</span>
+          <span class="value"
+            >{{ formatDate(grouping.summary.lastUpdated) }}</span
+          >
+        </div>
+        }
+      </div>
+
+      <!-- Section Details -->
+      <div class="sections-breakdown">
+        <h4>Section Performance</h4>
+        <div class="sections-list">
+          @for (section of grouping.sections; track section.sectionId) {
+          <div class="section-item">
+            <div class="section-info">
+              <span class="section-name">{{ section.sectionTitle }}</span>
+              <span class="section-score"
+                >{{ section.score }}/{{ section.maxScore }}</span
+              >
+            </div>
+            <div class="section-progress">
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  [style.width.%]="section.percentage"
+                  [class]="getProgressClass(section.percentage)"
+                ></div>
+              </div>
+              <span class="percentage"
+                >{{ section.percentage.toFixed(0) }}%</span
+              >
+            </div>
+
+            <!-- Question Results Toggle -->
+            <div class="question-toggle">
+              <button
+                type="button"
+                class="toggle-btn"
+                (click)="
+                        toggleSectionDetails(
+                          grouping.department + '-' + section.sectionId
+                        )
+                      "
+                [class.expanded]="
+                        expandedSections().has(
+                          grouping.department + '-' + section.sectionId
+                        )
+                      "
+              >
+                {{ expandedSections().has( grouping.department + "-" +
+                section.sectionId ) ? "Hide" : "Show" }} Questions
+              </button>
+            </div>
+
+            <!-- Question Details -->
+            @if ( expandedSections().has( grouping.department + "-" +
+            section.sectionId ) ) {
+            <div class="questions-details">
+              @for ( question of section.questionResults; track
+              question.questionId ) {
+              <div class="question-item">
+                <div class="question-header">
+                  <span class="question-title"
+                    >{{ question.questionTitle }}</span
+                  >
+                  <span
+                    class="question-type-badge"
+                    [class]="
+                                'type-' + question.type.toLowerCase()
+                              "
+                  >
+                    {{ getQuestionTypeLabel(question.type) }}
+                  </span>
+                </div>
+                <div class="question-score">
+                  <span>{{ question.score }}/{{ question.maxScore }}</span>
+                  <div class="mini-progress">
+                    <div
+                      class="mini-fill"
+                      [style.width.%]="
+                                  (question.score / question.maxScore) * 100
+                                "
+                    ></div>
+                  </div>
+                </div>
+
+                @if ( question.subQuestionResults &&
+                question.subQuestionResults.length > 0 ) {
+                <div class="sub-questions">
+                  @for ( subQuestion of question.subQuestionResults; track
+                  subQuestion.questionId ) {
+                  <div class="sub-question-item">
+                    <span class="sub-title"
+                      >{{ subQuestion.questionTitle }}</span
+                    >
+                    <span class="sub-score"
+                      >{{ subQuestion.score }}/{{ subQuestion.maxScore }}</span
+                    >
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+              }
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card-actions">
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          (click)="viewDetailedReport(grouping)"
+        >
+          View Report
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          (click)="exportGrouping(grouping)"
+        >
+          Export
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (filteredResultsGrouping().length === 0) {
+  <div class="empty-state">
+    <div class="empty-icon">📊</div>
+    <h3>No Results Found</h3>
+    <p>Try adjusting your filters to see assessment results.</p>
+    <button type="button" class="btn btn-primary" (click)="clearFilters()">
+      Clear All Filters
+    </button>
+  </div>
+  } }
+
+  <!-- Comparison Chart Section -->
+  @if (filteredResultsGrouping().length > 1) {
+  <div class="comparison-section">
+    <h2>Performance Comparison</h2>
+    <div class="comparison-chart">
+      <div class="chart-container">
+        @for ( grouping of filteredResultsGrouping(); track grouping.department
+        + "-" + grouping.organizationalLevel ) {
+        <div class="chart-bar">
+          <div class="bar-container">
+            <div
+              class="bar-fill"
+              [style.height.%]="grouping.summary.completionPercentage"
+              [class]="
+                    getScoreClass(grouping.summary.completionPercentage)
+                  "
+            ></div>
+          </div>
+          <div class="bar-label">
+            <div class="label-primary">{{ grouping.department }}</div>
+            <div class="label-secondary">
+              {{ grouping.organizationalLevel }}
+            </div>
+            <div class="label-score">
+              {{ grouping.summary.completionPercentage.toFixed(0) }}%
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>

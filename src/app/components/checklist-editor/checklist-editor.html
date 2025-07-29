@@ -1,0 +1,433 @@
+<div class="checklist-editor-container">
+  <div class="editor-header">
+    <h2>{{ isEditMode() ? "Edit Checklist" : "Create New Checklist" }}</h2>
+    <div class="header-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="!checklistForm.valid || checklistService.loading()"
+        (click)="save()"
+      >
+        {{ checklistService.loading() ? "Saving..." : "Save" }}
+      </button>
+    </div>
+  </div>
+
+  @if (checklistService.error()) {
+  <div class="alert alert-error">
+    {{ checklistService.error() }}
+    <button
+      type="button"
+      class="close-btn"
+      (click)="checklistService.clearError()"
+    >
+      ×
+    </button>
+  </div>
+  } @if (validationResult().errors.length > 0) {
+  <div class="alert alert-error">
+    <h4>Validation Errors:</h4>
+    <ul>
+      @for (error of validationResult().errors; track error) {
+      <li>{{ error }}</li>
+      }
+    </ul>
+  </div>
+  } @if (validationResult().warnings.length > 0) {
+  <div class="alert alert-warning">
+    <h4>Warnings:</h4>
+    <ul>
+      @for (warning of validationResult().warnings; track warning) {
+      <li>{{ warning }}</li>
+      }
+    </ul>
+  </div>
+  }
+
+  <form [formGroup]="checklistForm" class="checklist-form">
+    <!-- Basic Information -->
+    <div class="form-section">
+      <h3>Basic Information</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="id">ID *</label>
+          <input
+            id="id"
+            type="text"
+            formControlName="id"
+            class="form-control"
+            [class.error]="isFieldInvalid('id')"
+          />
+          @if (isFieldInvalid("id")) {
+          <div class="field-error">ID is required</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="healthProgram">Health Program *</label>
+          <select
+            id="healthProgram"
+            formControlName="healthProgram"
+            class="form-control"
+            [class.error]="isFieldInvalid('healthProgram')"
+          >
+            <option value="">Select a program</option>
+            @for (program of availableHealthPrograms(); track program) {
+            <option [value]="program">{{ program }}</option>
+            }
+          </select>
+          @if (isFieldInvalid("healthProgram")) {
+          <div class="field-error">Health program is required</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="organizationalLevel">Organizational Level *</label>
+          <select
+            id="organizationalLevel"
+            formControlName="organizationalLevel"
+            class="form-control"
+            [class.error]="isFieldInvalid('organizationalLevel')"
+          >
+            <option value="">Select a level</option>
+            @for (level of availableOrganizationalLevels(); track level) {
+            <option [value]="level">{{ level }}</option>
+            }
+          </select>
+          @if (isFieldInvalid("organizationalLevel")) {
+          <div class="field-error">Organizational level is required</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="department">Department *</label>
+          <select
+            id="department"
+            formControlName="department"
+            class="form-control"
+            [class.error]="isFieldInvalid('department')"
+          >
+            <option value="">Select a department</option>
+            @for (department of availableDepartments(); track department) {
+            <option [value]="department">{{ department }}</option>
+            }
+          </select>
+          @if (isFieldInvalid("department")) {
+          <div class="field-error">Department is required</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3>Sections</h3>
+        <button type="button" class="btn btn-primary" (click)="addSection()">
+          Add Section
+        </button>
+      </div>
+
+      <div formArrayName="sections" class="sections-container">
+        @for ( sectionControl of sectionsArray.controls; track sectionControl;
+        let sectionIndex = $index ) {
+        <div [formGroupName]="sectionIndex" class="section-card">
+          <div class="section-card-header">
+            <h4>Section {{ sectionIndex + 1 }}</h4>
+            <button
+              type="button"
+              class="btn btn-danger btn-sm"
+              (click)="removeSection(sectionIndex)"
+            >
+              Remove
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label [for]="'section-id-' + sectionIndex">Section ID *</label>
+              <input
+                [id]="'section-id-' + sectionIndex"
+                type="text"
+                formControlName="id"
+                class="form-control"
+                [class.error]="isSectionFieldInvalid(sectionIndex, 'id')"
+              />
+            </div>
+
+            <div class="form-group">
+              <label [for]="'section-title-' + sectionIndex">Title *</label>
+              <input
+                [id]="'section-title-' + sectionIndex"
+                type="text"
+                formControlName="title"
+                class="form-control"
+                [class.error]="
+                    isSectionFieldInvalid(sectionIndex, 'title')
+                  "
+              />
+            </div>
+
+            <div class="form-group">
+              <label [for]="'section-score-' + sectionIndex">Score *</label>
+              <input
+                [id]="'section-score-' + sectionIndex"
+                type="number"
+                formControlName="score"
+                class="form-control"
+                min="0"
+                [class.error]="
+                    isSectionFieldInvalid(sectionIndex, 'score')
+                  "
+              />
+            </div>
+
+            <div class="form-group">
+              <label [for]="'section-maxScore-' + sectionIndex"
+                >Max Score *</label
+              >
+              <input
+                [id]="'section-maxScore-' + sectionIndex"
+                type="number"
+                formControlName="maxScore"
+                class="form-control"
+                min="1"
+                [class.error]="
+                    isSectionFieldInvalid(sectionIndex, 'maxScore')
+                  "
+              />
+            </div>
+          </div>
+
+          <!-- Questions -->
+          <div class="questions-container">
+            <div class="questions-header">
+              <h5>Questions</h5>
+              <div class="question-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  (click)="
+                      addQuestion(sectionIndex, QuestionType.STANDARD)
+                    "
+                >
+                  Add Standard Question
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  (click)="
+                      addQuestion(sectionIndex, QuestionType.DATA_CONTROL)
+                    "
+                >
+                  Add Data Control
+                </button>
+              </div>
+            </div>
+
+            <div formArrayName="questions">
+              @for ( questionControl of getQuestionsArray(sectionIndex)
+              .controls; track questionControl; let questionIndex = $index ) {
+              <div [formGroupName]="questionIndex" class="question-card">
+                <div class="question-header">
+                  <h6>
+                    {{ getQuestionTypeLabel( getQuestionType(sectionIndex,
+                    questionIndex) ) }} - Question {{ questionIndex + 1 }}
+                  </h6>
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    (click)="
+                          removeQuestion(sectionIndex, questionIndex)
+                        "
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <!-- Standard Question Fields -->
+                @if ( getQuestionType(sectionIndex, questionIndex) ===
+                QuestionType.STANDARD ) {
+                <div class="standard-question-fields">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label>Question ID *</label>
+                      <input
+                        type="text"
+                        formControlName="id"
+                        class="form-control"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Title *</label>
+                      <input
+                        type="text"
+                        formControlName="title"
+                        class="form-control"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Score *</label>
+                      <input
+                        type="number"
+                        formControlName="score"
+                        class="form-control"
+                        min="0"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Max Score *</label>
+                      <input
+                        type="number"
+                        formControlName="maxScore"
+                        class="form-control"
+                        min="1"
+                      />
+                    </div>
+                  </div>
+                </div>
+                }
+
+                <!-- Data Control Question Fields -->
+                @if ( getQuestionType(sectionIndex, questionIndex) ===
+                QuestionType.DATA_CONTROL ) {
+                <div class="data-control-fields">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label>Question ID *</label>
+                      <input
+                        type="text"
+                        formControlName="id"
+                        class="form-control"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Title *</label>
+                      <input
+                        type="text"
+                        formControlName="title"
+                        class="form-control"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Score *</label>
+                      <input
+                        type="number"
+                        formControlName="score"
+                        class="form-control"
+                        min="0"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Max Score *</label>
+                      <input
+                        type="number"
+                        formControlName="maxScore"
+                        class="form-control"
+                        min="1"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Indicator *</label>
+                      <input
+                        type="text"
+                        formControlName="indicator"
+                        class="form-control"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>Month *</label>
+                      <input
+                        type="month"
+                        formControlName="month"
+                        class="form-control"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Data Source -->
+                  <div formGroupName="dataSource" class="data-point-group">
+                    <h6>Data Source</h6>
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label>ID *</label>
+                        <input
+                          type="text"
+                          formControlName="id"
+                          class="form-control"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Name *</label>
+                        <input
+                          type="text"
+                          formControlName="name"
+                          class="form-control"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Value *</label>
+                        <input
+                          type="number"
+                          formControlName="value"
+                          class="form-control"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Data Count -->
+                  <div formGroupName="dataCount" class="data-point-group">
+                    <h6>Data Count</h6>
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label>ID *</label>
+                        <input
+                          type="text"
+                          formControlName="id"
+                          class="form-control"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Name *</label>
+                        <input
+                          type="text"
+                          formControlName="name"
+                          class="form-control"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Value *</label>
+                        <input
+                          type="number"
+                          formControlName="value"
+                          class="form-control"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>
+                      <input
+                        type="checkbox"
+                        formControlName="hasDataDifference"
+                      />
+                      Has Data Difference
+                    </label>
+                  </div>
+                </div>
+                }
+              </div>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,199 @@
+<div class="checklist-list-container">
+  <!-- Header -->
+  <div class="list-header">
+    <div class="header-content">
+      <h2>Checklists</h2>
+      <p class="header-subtitle">
+        Manage and assess your health program checklists
+      </p>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        routerLink="/checklists/new"
+      >
+        + Create New Checklist
+      </button>
+    </div>
+  </div>
+
+  @if (checklistService.error()) {
+  <div class="alert alert-error">
+    {{ checklistService.error() }}
+    <button
+      type="button"
+      class="close-btn"
+      (click)="checklistService.clearError()"
+    >
+      ×
+    </button>
+  </div>
+  } @if (checklistService.loading()) {
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <p>Loading checklists...</p>
+  </div>
+  } @else {
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-content">
+        <div class="stat-number">
+          {{ checklistService.checklists().length }}
+        </div>
+        <div class="stat-label">Total Checklists</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ averageCompletionRate() }}%</div>
+        <div class="stat-label">Avg. Completion</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏥</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ uniqueDepartments().length }}</div>
+        <div class="stat-label">Departments</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ uniquePrograms().length }}</div>
+        <div class="stat-label">Programs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklists Grid -->
+  @if (checklistService.checklists().length > 0) {
+  <div class="checklists-grid">
+    @for (checklist of checklistService.checklists(); track checklist.id) {
+    <div class="checklist-card">
+      <div class="card-header">
+        <div class="header-info">
+          <h3>{{ checklist.healthProgram }}</h3>
+          <div class="metadata">
+            <span class="badge badge-primary">{{ checklist.department }}</span>
+            <span class="badge badge-secondary"
+              >{{ checklist.organizationalLevel }}</span
+            >
+          </div>
+        </div>
+        <div class="completion-score">
+          <div
+            class="score-circle"
+            [class]="getScoreClass(getCompletionPercentage(checklist))"
+          >
+            <span>{{ getCompletionPercentage(checklist) }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="checklist-stats">
+          <div class="stat-row">
+            <span class="stat-label">Sections:</span>
+            <span class="stat-value">{{ checklist.sections.length }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Questions:</span>
+            <span class="stat-value">{{ getTotalQuestions(checklist) }}</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Score:</span>
+            <span class="stat-value"
+              >{{ getTotalScore(checklist) }}/{{ getMaxScore(checklist) }}</span
+            >
+          </div>
+          @if (checklist.updatedAt) {
+          <div class="stat-row">
+            <span class="stat-label">Updated:</span>
+            <span class="stat-value"
+              >{{ formatDate(checklist.updatedAt) }}</span
+            >
+          </div>
+          }
+        </div>
+
+        <div class="sections-preview">
+          <h4>Sections Overview</h4>
+          <div class="sections-list">
+            @for (section of checklist.sections.slice(0, 3); track section.id) {
+            <div class="section-preview">
+              <span class="section-name">{{ section.title }}</span>
+              <div class="section-progress">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    [style.width.%]="getSectionPercentage(section)"
+                    [class]="getProgressClass(getSectionPercentage(section))"
+                  ></div>
+                </div>
+                <span class="percentage"
+                  >{{ getSectionPercentage(section) }}%</span
+                >
+              </div>
+            </div>
+            } @if (checklist.sections.length > 3) {
+            <div class="more-sections">
+              +{{ checklist.sections.length - 3 }} more sections
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            [routerLink]="['/checklists/edit', checklist.id]"
+            (click)="setCurrentChecklist(checklist)"
+          >
+            ✏️ Edit
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            [routerLink]="['/assessment', checklist.id]"
+            (click)="setCurrentChecklist(checklist)"
+          >
+            📝 Assess
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            (click)="viewResults(checklist)"
+          >
+            📊 Results
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger btn-sm"
+            (click)="deleteChecklist(checklist)"
+            [disabled]="checklistService.loading()"
+          >
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <h3>No Checklists Found</h3>
+    <p>Get started by creating your first health program checklist.</p>
+    <button type="button" class="btn btn-primary" routerLink="/checklists/new">
+      Create Your First Checklist
+    </button>
+  </div>
+  } }
+</div>
