@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { v4 as uuidv4 } from 'uuid';
+import {Injectable} from '@angular/core';
+import {v4 as uuidv4} from 'uuid';
 
 export interface IdGeneratorConfig {
   prefix?: string;
@@ -231,5 +231,9 @@ export class IdGeneratorService {
     }
 
     return uniqueId;
+  }
+
+  generateId() {
+    return crypto.randomUUID();
   }
 }

@@ -1,41 +1,36 @@
-import { Routes } from "@angular/router";
+import {Routes} from "@angular/router";
 
 export const routes: Routes = [
   {
     path: "",
-    redirectTo: "/checklists",
+    redirectTo: "/spotcheks",
     pathMatch: "full",
   },
   {
-    path: "checklists",
+    path: "spotcheks",
     loadComponent: () =>
       import("./components/checklist-list/checklist-list").then(
         (m) => m.ChecklistList,
       ),
-    title: "Checklists",
+    title: "Spotcheck Checklists",
   },
   {
-    path: "checklists/new",
+    path: "spotcheks/new",
     loadComponent: () =>
-      import("./components/checklist-editor/checklist-editor").then(
-        (m) => m.ChecklistEditor,
+      import("./components/spotcheck-editor/spotcheck-editor").then(
+        (m) => m.SpotchekEditorComponent,
       ),
-    title: "Create New Checklist",
+    title: "Create New Spotcheck",
   },
   {
-    path: "checklists/edit/:id",
+    path: "spotcheks/edit/:id",
     loadComponent: () =>
-      import("./components/checklist-editor/checklist-editor").then(
-        (m) => m.ChecklistEditor,
+      import("./components/spotcheck-editor/spotcheck-editor").then(
+        (m) => m.SpotchekEditorComponent,
       ),
-    title: "Edit Checklist",
+    title: "Edit Spotcheck",
   },
-  {
-    path: "assessment/:id",
-    loadComponent: () =>
-      import("./components/assessment/assessment").then((m) => m.Assessment),
-    title: "Assessment",
-  },
+  
   {
     path: "assessment-quiz",
     loadComponent: () =>
@@ -68,8 +63,21 @@ export const routes: Routes = [
       ),
     title: "Detailed Report",
   },
+  // Legacy redirects for backward compatibility
+  {
+    path: "checklists",
+    redirectTo: "/spotcheks",
+  },
+  {
+    path: "checklists/new",
+    redirectTo: "/spotcheks/new",
+  },
+  {
+    path: "checklists/edit/:id",
+    redirectTo: "/spotcheks/edit/:id",
+  },
   {
     path: "**",
-    redirectTo: "/checklists",
+    redirectTo: "/spotcheks",
   },
 ];

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ChecklistEditor } from './checklist-editor';
+import { SpotcheckEditor } from './spotcheck-editor';
 
-describe('ChecklistEditor', () => {
-  let component: ChecklistEditor;
-  let fixture: ComponentFixture<ChecklistEditor>;
+describe('SpotcheckEditor', () => {
+  let component: SpotcheckEditor;
+  let fixture: ComponentFixture<SpotcheckEditor>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChecklistEditor]
+      imports: [SpotcheckEditor]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ChecklistEditor);
+    fixture = TestBed.createComponent(SpotcheckEditor);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

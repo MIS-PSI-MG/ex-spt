@@ -1,0 +1,513 @@
+<div class="spotchek-editor">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        {{ isEditMode() ? 'Edit Checklist' : 'Create New Checklist' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form (ngSubmit)="onSubmit()" [formGroup]="checklistForm">
+        <!-- Basic Information -->
+        <div class="basic-info-section">
+          <h3>Basic Information</h3>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Health Program</mat-label>
+            <mat-select formControlName="healthProgram">
+              @for (option of healthProgramOptions; track option.value) {
+                <mat-option [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (checklistForm.get('healthProgram')?.errors?.['required']) {
+              <mat-error>Health program is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="departement">
+              @for (option of departmentOptions; track option.value) {
+                <mat-option [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (checklistForm.get('departement')?.errors?.['required']) {
+              <mat-error>Department is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Level</mat-label>
+            <input formControlName="niveau" matInput placeholder="Enter level" type="number">
+            @if (checklistForm.get('niveau')?.errors?.['required']) {
+              <mat-error>Level is required</mat-error>
+            }
+            @if (checklistForm.get('niveau')?.errors?.['min']) {
+              <mat-error>Level must be 0 or greater</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Sections -->
+        <div class="sections-container">
+          <div class="section-header">
+            <h3>Sections</h3>
+            <button
+              (click)="addSection()"
+              color="primary"
+              mat-raised-button
+              type="button"
+            >
+              <mat-icon>add</mat-icon>
+              Add Section
+            </button>
+          </div>
+
+          <!-- Sections Loop -->
+          <mat-accordion formArrayName="sections">
+            @for (sectionControl of sectionsArray().controls; track $index; let i = $index) {
+              <mat-expansion-panel class="section-panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    Section {{ i + 1 }}: {{ getSectionTitle(i) || 'Untitled' }}
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    {{ getSectionType(i) | titlecase }} Section
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+
+                <div [formGroup]="getSectionFormGroup(i)">
+                  <!-- Section Basic Info -->
+                  <div class="section-basic-info">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Section Title</mat-label>
+                      <input formControlName="title" matInput placeholder="Enter section title">
+                      @if (sectionControl.get('title')?.errors?.['required']) {
+                        <mat-error>Section title is required</mat-error>
+                      }
+                    </mat-form-field>
+
+                    <div class="score-fields">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Max Score</mat-label>
+                        <input formControlName="maxScore" matInput type="number" min="0">
+                      </mat-form-field>
+
+                      <mat-form-field appearance="outline">
+                        <mat-label>Current Score</mat-label>
+                        <input formControlName="score" matInput type="number" min="0">
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <!-- Section Actions -->
+                  <div class="section-actions">
+                    <button
+                      (click)="addQuestion(i)"
+                      color="accent"
+                      mat-stroked-button
+                      type="button"
+                    >
+                      <mat-icon>add</mat-icon>
+                      Add Question
+                    </button>
+
+                    <button
+                      (click)="addSubsection(i)"
+                      color="accent"
+                      mat-stroked-button
+                      type="button"
+                    >
+                      <mat-icon>add</mat-icon>
+                      Add Subsection
+                    </button>
+
+                    <button
+                      (click)="removeSection(i)"
+                      color="warn"
+                      mat-stroked-button
+                      type="button"
+                      [disabled]="sectionsArray().length <= 1"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      Remove Section
+                    </button>
+                  </div>
+
+                  <!-- Direct Section Questions -->
+                  <div class="questions-container" formArrayName="questions">
+                    @if (getSectionQuestionsArray(i).length > 0) {
+                      <h4>Section Questions</h4>
+                    }
+
+                    @for (questionControl of getSectionQuestionsArray(i).controls; track $index; let j = $index) {
+                      <div [formGroup]="getQuestionFormGroup(i, j)" class="question-item">
+                        <!-- Simple Question -->
+                        @if (questionControl.get('question')) {
+                          <div class="question-content">
+                            <mat-form-field appearance="outline" class="question-field">
+                              <mat-label>Question {{ j + 1 }}</mat-label>
+                              <textarea formControlName="question" matInput rows="2" placeholder="Enter question"></textarea>
+                              @if (questionControl.get('question')?.errors?.['required']) {
+                                <mat-error>Question is required</mat-error>
+                              }
+                            </mat-form-field>
+
+                            <div class="question-score">
+                              <mat-form-field appearance="outline">
+                                <mat-label>Score</mat-label>
+                                <mat-select formControlName="score">
+                                  <mat-option value="NA">N/A</mat-option>
+                                  <mat-option [value]="true">Yes</mat-option>
+                                  <mat-option [value]="false">No</mat-option>
+                                  <mat-option value="0">0</mat-option>
+                                  <mat-option value="1">1</mat-option>
+                                  <mat-option value="2">2</mat-option>
+                                  <mat-option value="3">3</mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                            </div>
+
+                            <button
+                              (click)="removeQuestion(i, j)"
+                              color="warn"
+                              mat-icon-button
+                              type="button"
+                            >
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        } @else {
+                          <!-- Subquestion Template -->
+                          <div class="subquestion-container" formGroupName="subquestion">
+                            <mat-form-field appearance="outline" class="subquestion-main">
+                              <mat-label>Main Question</mat-label>
+                              <textarea formControlName="q" matInput rows="2" placeholder="Enter main question"></textarea>
+                            </mat-form-field>
+
+                            <div class="sub-answers" formArrayName="sq">
+                              <h5>Sub-questions:</h5>
+                              @if (questionControl.get('subquestion.sq') as FormArray; as sqArray) {
+                                @for (sqControl of sqArray.controls; track $index; let k = $index) {
+                                  <div [formGroup]="sqControl" class="sub-answer-item">
+                                    <!-- Standard subquestion -->
+                                    @if (sqControl.get('question')) {
+                                      <mat-form-field appearance="outline">
+                                        <mat-label>Sub-question {{ k + 1 }}</mat-label>
+                                        <input formControlName="question" matInput placeholder="Enter sub-question">
+                                      </mat-form-field>
+
+                                      <mat-form-field appearance="outline">
+                                        <mat-label>Score</mat-label>
+                                        <mat-select formControlName="score">
+                                          <mat-option value="NA">N/A</mat-option>
+                                          <mat-option [value]="true">Yes</mat-option>
+                                          <mat-option [value]="false">No</mat-option>
+                                          <mat-option value="0">0</mat-option>
+                                          <mat-option value="1">1</mat-option>
+                                        </mat-select>
+                                      </mat-form-field>
+                                    } @else {
+                                      <!-- Month Data Template -->
+                                      <div class="month-data-container">
+                                        <h6>{{ sqControl.get('mois')?.value }}</h6>
+
+                                        <div class="data-elements">
+                                          <div formGroupName="element1" class="element-group">
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Element 1 Name</mat-label>
+                                              <input formControlName="name" matInput readonly>
+                                            </mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Number</mat-label>
+                                              <input formControlName="number" matInput type="number">
+                                            </mat-form-field>
+                                          </div>
+
+                                          <div formGroupName="element2" class="element-group">
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Element 2 Name</mat-label>
+                                              <input formControlName="name" matInput readonly>
+                                            </mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Number</mat-label>
+                                              <input formControlName="number" matInput type="number">
+                                            </mat-form-field>
+                                          </div>
+
+                                          <div formGroupName="element3" class="element-group">
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Element 3 Name</mat-label>
+                                              <input formControlName="name" matInput readonly>
+                                            </mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Number</mat-label>
+                                              <input formControlName="number" matInput type="number">
+                                            </mat-form-field>
+                                          </div>
+
+                                          <div formGroupName="eval" class="eval-group">
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Evaluation Name</mat-label>
+                                              <input formControlName="name" matInput readonly>
+                                            </mat-form-field>
+                                            <mat-form-field appearance="outline">
+                                              <mat-label>Score</mat-label>
+                                              <input formControlName="score" matInput type="number">
+                                            </mat-form-field>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    }
+                                  </div>
+                                }
+                              }
+                            </div>
+
+                            <button
+                              (click)="removeQuestion(i, j)"
+                              color="warn"
+                              mat-icon-button
+                              type="button"
+                            >
+                              <mat-icon>delete</mat-icon>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Subsections -->
+                  <div class="subsections-container" formArrayName="subsection">
+                    @if (getSectionFormGroup(i).get('subsection')?.controls; as subsectionControls) {
+                      @for (subsectionControl of subsectionControls; track $index; let s = $index) {
+                        <div [formGroup]="getSubsectionFormGroup(i, s)" class="subsection-item">
+                          <mat-divider></mat-divider>
+                          <h4>Subsection {{ s + 1 }}</h4>
+
+                          <!-- Subsection Basic Info -->
+                          <div class="subsection-basic-info">
+                            <mat-form-field appearance="outline">
+                              <mat-label>Subsection Title</mat-label>
+                              <input formControlName="title" matInput placeholder="Enter subsection title">
+                            </mat-form-field>
+
+                            @if (subsectionControl.get('instruction')) {
+                              <mat-form-field appearance="outline">
+                                <mat-label>Instruction</mat-label>
+                                <textarea formControlName="instruction" matInput rows="2" placeholder="Enter instructions"></textarea>
+                              </mat-form-field>
+                            }
+
+                            <div class="score-fields">
+                              <mat-form-field appearance="outline">
+                                <mat-label>Max Score</mat-label>
+                                <input formControlName="maxScore" matInput type="number" min="0">
+                              </mat-form-field>
+
+                              <mat-form-field appearance="outline">
+                                <mat-label>Current Score</mat-label>
+                                <input formControlName="score" matInput type="number" min="0">
+                              </mat-form-field>
+                            </div>
+                          </div>
+
+                          <!-- Subsection Actions -->
+                          <div class="subsection-actions">
+                            <button
+                              (click)="addQuestion(i, s)"
+                              color="accent"
+                              mat-stroked-button
+                              type="button"
+                            >
+                              <mat-icon>add</mat-icon>
+                              Add Question
+                            </button>
+
+                            <button
+                              (click)="removeSubsection(i, s)"
+                              color="warn"
+                              mat-stroked-button
+                              type="button"
+                            >
+                              <mat-icon>delete</mat-icon>
+                              Remove Subsection
+                            </button>
+                          </div>
+
+                          <!-- Subsection Questions -->
+                          <div class="questions-container" formArrayName="questions">
+                            @if (getSubsectionQuestionsArray(i, s).controls; as questionControls) {
+                              @for (questionControl of questionControls; track $index; let q = $index) {
+                                <div [formGroup]="getQuestionFormGroup(i, q, s)" class="question-item">
+                                  <!-- Simple Question -->
+                                  @if (questionControl.get('question')) {
+                                    <div class="question-content">
+                                      <mat-form-field appearance="outline" class="question-field">
+                                        <mat-label>Question {{ q + 1 }}</mat-label>
+                                        <textarea formControlName="question" matInput rows="2" placeholder="Enter question"></textarea>
+                                      </mat-form-field>
+
+                                      <div class="question-score">
+                                        <mat-form-field appearance="outline">
+                                          <mat-label>Score</mat-label>
+                                          <mat-select formControlName="score">
+                                            <mat-option value="NA">N/A</mat-option>
+                                            <mat-option [value]="true">Yes</mat-option>
+                                            <mat-option [value]="false">No</mat-option>
+                                            <mat-option value="0">0</mat-option>
+                                            <mat-option value="1">1</mat-option>
+                                            <mat-option value="2">2</mat-option>
+                                            <mat-option value="3">3</mat-option>
+                                          </mat-select>
+                                        </mat-form-field>
+                                      </div>
+
+                                      <button
+                                        (click)="removeQuestion(i, q, s)"
+                                        color="warn"
+                                        mat-icon-button
+                                        type="button"
+                                      >
+                                        <mat-icon>delete</mat-icon>
+                                      </button>
+                                    </div>
+                                  } @else {
+                                    <!-- Sub-subquestion Template -->
+                                    <div class="subquestion-container" formGroupName="subquestion">
+                                      <mat-form-field appearance="outline" class="subquestion-main">
+                                        <mat-label>Main Question</mat-label>
+                                        <textarea formControlName="q" matInput rows="2" placeholder="Enter main question"></textarea>
+                                      </mat-form-field>
+
+                                      <div class="sub-answers" formArrayName="sq">
+                                        <h6>Sub-questions:</h6>
+                                        @if (questionControl.get('subquestion.sq') as FormArray; as sqArray) {
+                                          @for (sqControl of sqArray.controls; track $index; let k = $index) {
+                                            <div [formGroup]="sqControl" class="sub-answer-item">
+                                              <!-- Standard subquestion -->
+                                              @if (sqControl.get('question')) {
+                                                <mat-form-field appearance="outline">
+                                                  <mat-label>Sub-question {{ k + 1 }}</mat-label>
+                                                  <input formControlName="question" matInput placeholder="Enter sub-question">
+                                                </mat-form-field>
+
+                                                <mat-form-field appearance="outline">
+                                                  <mat-label>Score</mat-label>
+                                                  <mat-select formControlName="score">
+                                                    <mat-option value="NA">N/A</mat-option>
+                                                    <mat-option [value]="true">Yes</mat-option>
+                                                    <mat-option [value]="false">No</mat-option>
+                                                    <mat-option value="0">0</mat-option>
+                                                    <mat-option value="1">1</mat-option>
+                                                  </mat-select>
+                                                </mat-form-field>
+                                              } @else {
+                                                <!-- Month Data Template for Subsections -->
+                                                <div class="month-data-container">
+                                                  <h6>{{ sqControl.get('mois')?.value }}</h6>
+
+                                                  <div class="data-elements">
+                                                    <div formGroupName="element1" class="element-group">
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Element 1</mat-label>
+                                                        <input formControlName="name" matInput readonly>
+                                                      </mat-form-field>
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Number</mat-label>
+                                                        <input formControlName="number" matInput type="number">
+                                                      </mat-form-field>
+                                                    </div>
+
+                                                    <div formGroupName="element2" class="element-group">
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Element 2</mat-label>
+                                                        <input formControlName="name" matInput readonly>
+                                                      </mat-form-field>
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Number</mat-label>
+                                                        <input formControlName="number" matInput type="number">
+                                                      </mat-form-field>
+                                                    </div>
+
+                                                    <div formGroupName="element3" class="element-group">
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Element 3</mat-label>
+                                                        <input formControlName="name" matInput readonly>
+                                                      </mat-form-field>
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Number</mat-label>
+                                                        <input formControlName="number" matInput type="number">
+                                                      </mat-form-field>
+                                                    </div>
+
+                                                    <div formGroupName="eval" class="eval-group">
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Evaluation</mat-label>
+                                                        <input formControlName="name" matInput readonly>
+                                                      </mat-form-field>
+                                                      <mat-form-field appearance="outline">
+                                                        <mat-label>Score</mat-label>
+                                                        <input formControlName="score" matInput type="number">
+                                                      </mat-form-field>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              }
+                                            </div>
+                                          }
+                                        }
+                                      </div>
+
+                                      <button
+                                        (click)="removeQuestion(i, q, s)"
+                                        color="warn"
+                                        mat-icon-button
+                                        type="button"
+                                      >
+                                        <mat-icon>delete</mat-icon>
+                                      </button>
+                                    </div>
+                                  }
+                                }
+                              }
+                            }
+                          </div>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </mat-expansion-panel>
+            }
+          </mat-accordion>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button (click)="cancel()" mat-button type="button">
+        Cancel
+      </button>
+      <button
+        (click)="onSubmit()"
+        [disabled]="checklistForm.invalid || loading()"
+        color="primary"
+        mat-raised-button
+      >
+        @if (loading()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          {{ isEditMode() ? 'Update' : 'Create' }} Checklist
+        }
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
