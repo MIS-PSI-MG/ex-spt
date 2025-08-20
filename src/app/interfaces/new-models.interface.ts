@@ -17,14 +17,16 @@ export interface Section {
 }
 
 // SectionType
-
+// Standard
 export interface StdQuestion {
   id: string;
   subject: string;
   level: number;
-  parent: string;
+  parentId: string;
   score: number;
 }
+
+// Data quality question
 
 export interface DQQuestion {
   id: string;
@@ -34,28 +36,28 @@ export interface DQQuestion {
 export interface Subsection {
   id: string;
   instruction: string;
-  questions: SubQuestion[];
+  questions: DataQualityEvaluation[];
 }
 
-export interface SubQuestion {
-  quiz: string;
-  sq: SQ[];
+export interface DataQualityEvaluation {
+  evaluationTopic: string;
+  monthlyEntries: MonthlyEntry[];
 }
-export interface SQ {
+export interface MonthlyEntry {
   id: string;
   month: string;
   answer: string;
-  elements: Element[];
-  evals: Eval[];
+  elements: DataElement[];
+  evals: Evaluation[];
 }
 
-export interface Element {
+export interface DataElement {
   id: string;
   name: string;
   data: number;
 }
 
-export interface Eval {
+export interface Evaluation {
   id: string;
   name: string;
   score: number;
