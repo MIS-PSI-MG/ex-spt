@@ -5,6 +5,7 @@ import {
   FormArray,
   Validators,
   ReactiveFormsModule,
+  AbstractControl,
 } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
@@ -37,6 +38,17 @@ import {
   Evaluation,
 } from "../../interfaces/new-models.interface";
 import { ChecklistService } from "../../services/checklist.service";
+
+// Interface for hierarchical question display
+interface HierarchicalQuestion {
+  control: AbstractControl;
+  index: number;
+  id: string;
+  level: number;
+  parentId: string;
+  subject: string;
+  children: HierarchicalQuestion[];
+}
 
 @Component({
   selector: "app-checklist-edit",
@@ -250,21 +262,23 @@ export class ChecklistEdit implements OnInit {
   }
 
   // Get hierarchical structure of standard questions
-  getHierarchicalQuestions(sectionIndex: number): any[] {
+  getHierarchicalQuestions(sectionIndex: number): HierarchicalQuestion[] {
     const questionsArray = this.getSectionQuestionsArray(sectionIndex);
-    const questions = questionsArray.controls.map((control, index) => ({
-      control,
-      index,
-      id: control.get("id")?.value,
-      level: control.get("level")?.value,
-      parentId: control.get("parentId")?.value,
-      subject: control.get("subject")?.value,
-      children: [] as any[],
-    }));
+    const questions: HierarchicalQuestion[] = questionsArray.controls.map(
+      (control, index) => ({
+        control,
+        index,
+        id: control.get("id")?.value,
+        level: control.get("level")?.value,
+        parentId: control.get("parentId")?.value,
+        subject: control.get("subject")?.value,
+        children: [],
+      }),
+    );
 
     // Build hierarchy
-    const hierarchy: any[] = [];
-    const questionMap = new Map();
+    const hierarchy: HierarchicalQuestion[] = [];
+    const questionMap = new Map<string, HierarchicalQuestion>();
 
     // First pass: create map and find root questions
     questions.forEach((q) => {
@@ -278,7 +292,9 @@ export class ChecklistEdit implements OnInit {
     questions.forEach((q) => {
       if (q.parentId && questionMap.has(q.parentId)) {
         const parent = questionMap.get(q.parentId);
-        parent.children.push(q);
+        if (parent) {
+          parent.children.push(q);
+        }
       }
     });
 
