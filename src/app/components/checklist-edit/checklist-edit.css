@@ -1,0 +1,1314 @@
+/* ============================================================================= */
+/* Checklist Edit Component - Material Design 3 Compliant Styles */
+/* Mobile-First Responsive Design with Proper Spacing, Typography, and Layout */
+/* ============================================================================= */
+
+/* =============================================================================
+   Container and Main Layout
+   ============================================================================= */
+
+.checklist-edit-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--mat-sys-surface-variant);
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  padding: var(--spacing-md);
+  max-width: 100%;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* =============================================================================
+   Material Toolbar Styling
+   ============================================================================= */
+
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 500;
+  font-size: 1.25rem;
+  letter-spacing: 0.0125em;
+}
+
+.flex-spacer {
+  flex: 1;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.toolbar-button {
+  min-width: 80px;
+  height: 36px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.0071em;
+  text-transform: none;
+  border-radius: var(--border-radius-md);
+}
+
+.toolbar-button mat-icon {
+  margin-right: var(--spacing-xs);
+  font-size: 1.125rem;
+}
+
+/* =============================================================================
+   Loading State
+   ============================================================================= */
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: var(--spacing-xl);
+}
+
+.loading-card {
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--mat-sys-level2);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.loading-content h3 {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 400;
+  letter-spacing: 0.0071em;
+  color: var(--mat-sys-on-surface);
+}
+
+.loading-content p {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+}
+
+/* =============================================================================
+   Form Container and Cards
+   ============================================================================= */
+
+.checklist-form {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.form-card {
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--mat-sys-level1);
+  background-color: var(--mat-sys-surface);
+  transition: box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.form-card:hover {
+  box-shadow: var(--mat-sys-level2);
+}
+
+.form-card mat-card-header {
+  background-color: var(--mat-sys-surface-container-low);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  padding: var(--spacing-lg);
+}
+
+.form-card mat-card-title {
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: 0.0071em;
+  color: var(--mat-sys-on-surface);
+  margin: 0;
+}
+
+.form-card mat-card-subtitle {
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0.0178em;
+  color: var(--mat-sys-on-surface-variant);
+  margin: var(--spacing-xs) 0 0 0;
+}
+
+.form-card mat-card-content {
+  padding: var(--spacing-lg);
+}
+
+/* =============================================================================
+   Form Grid Layout System
+   ============================================================================= */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  align-items: start;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  align-items: start;
+}
+
+.question-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  align-items: start;
+}
+
+.entry-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  align-items: start;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.half-width {
+  grid-column: span 1;
+}
+
+.third-width {
+  grid-column: span 1;
+}
+
+/* =============================================================================
+   Form Field Styling
+   ============================================================================= */
+
+.mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: var(--spacing-sm);
+}
+
+.mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  margin-top: var(--spacing-xs);
+}
+
+.mat-mdc-form-field mat-hint {
+  font-size: 0.75rem;
+  line-height: 1.33;
+  letter-spacing: 0.0333em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.mat-mdc-form-field mat-error {
+  font-size: 0.75rem;
+  line-height: 1.33;
+  letter-spacing: 0.0333em;
+  color: var(--mat-sys-error);
+}
+
+/* =============================================================================
+   Sections Styling
+   ============================================================================= */
+
+.sections-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.section-count-chips {
+  margin-left: auto;
+}
+
+.section-count-chips mat-chip {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.0333em;
+  border-radius: var(--border-radius-sm);
+  height: 24px;
+}
+
+.add-section-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-md);
+  background-color: var(--mat-sys-surface-container-lowest);
+  border: 2px dashed var(--mat-sys-outline-variant);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.add-section-area:hover {
+  border-color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary-container);
+}
+
+.add-section-button {
+  min-width: 160px;
+  height: 40px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.0071em;
+  text-transform: none;
+  border-radius: var(--border-radius-md);
+}
+
+.add-section-button mat-icon {
+  margin-right: var(--spacing-xs);
+}
+
+.add-section-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+  line-height: 1.43;
+}
+
+/* =============================================================================
+   Accordion/Expansion Panel Styling
+   ============================================================================= */
+
+.sections-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.section-panel {
+  border-radius: var(--border-radius-lg) !important;
+  box-shadow: var(--mat-sys-level1) !important;
+  background-color: var(--mat-sys-surface-container) !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.section-panel:hover {
+  box-shadow: var(--mat-sys-level2) !important;
+}
+
+.section-panel .mat-expansion-panel-header {
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg)
+    var(--spacing-lg) !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+}
+
+.section-panel .mat-expansion-panel-content .mat-expansion-panel-body {
+  padding: 0 var(--spacing-lg) var(--spacing-lg) var(--spacing-lg) !important;
+}
+
+.section-icon {
+  color: var(--mat-sys-primary);
+  margin-right: var(--spacing-sm);
+  font-size: 1.25rem;
+}
+
+.section-title-text {
+  font-weight: 500;
+  font-size: 1.125rem;
+  letter-spacing: 0.0178em;
+  color: var(--mat-sys-on-surface);
+}
+
+.panel-description {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-left: auto;
+}
+
+.section-type-indicator {
+  font-size: 0.75rem;
+  font-weight: 500;
+  height: 20px;
+  padding: 0 var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+}
+
+.section-type-indicator.standard-type {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.section-type-indicator.dq-type {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.section-stats {
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-weight: 400;
+}
+
+/* =============================================================================
+   Section Configuration
+   ============================================================================= */
+
+.section-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.section-settings-card {
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface-container-lowest);
+}
+
+.section-settings-card mat-card-header {
+  background-color: var(--mat-sys-surface-container-low);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.section-settings-card mat-card-content {
+  padding: var(--spacing-lg);
+}
+
+.settings-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+  margin: 0;
+}
+
+/* =============================================================================
+   Questions Card
+   ============================================================================= */
+
+.questions-card {
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface);
+}
+
+.questions-card mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--mat-sys-primary-container);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.questions-header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-primary-container);
+  margin: 0;
+}
+
+.questions-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.questions-actions .mat-mdc-mini-fab {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+}
+
+.standard-questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* =============================================================================
+   Hierarchical Standard Questions Styling
+   ============================================================================= */
+
+.question-hierarchy-item {
+  position: relative;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Level-based indentation and styling */
+.question-level-1 {
+  margin-left: 0;
+}
+
+.question-level-2 {
+  margin-left: var(--spacing-xl);
+  position: relative;
+}
+
+.question-level-2::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--spacing-xl) + var(--spacing-sm));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--mat-sys-primary);
+  border-radius: 1px;
+}
+
+.question-level-3 {
+  margin-left: calc(var(--spacing-xl) * 2);
+  position: relative;
+}
+
+.question-level-3::before {
+  content: "";
+  position: absolute;
+  left: calc(-2 * var(--spacing-xl) + var(--spacing-sm));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--mat-sys-secondary);
+  border-radius: 1px;
+}
+
+.question-level-4 {
+  margin-left: calc(var(--spacing-xl) * 3);
+  position: relative;
+}
+
+.question-level-4::before {
+  content: "";
+  position: absolute;
+  left: calc(-3 * var(--spacing-xl) + var(--spacing-sm));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--mat-sys-tertiary);
+  border-radius: 1px;
+}
+
+.question-level-5 {
+  margin-left: calc(var(--spacing-xl) * 4);
+  position: relative;
+}
+
+.question-level-5::before {
+  content: "";
+  position: absolute;
+  left: calc(-4 * var(--spacing-xl) + var(--spacing-sm));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--mat-sys-outline);
+  border-radius: 1px;
+}
+
+/* Question card enhancements for hierarchy */
+.standard-question-card.has-children {
+  border-left: 4px solid var(--mat-sys-primary);
+}
+
+.question-title {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.question-level-indicator {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mat-sys-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.question-number {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+}
+
+.root-question-label {
+  color: var(--mat-sys-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.child-question-label {
+  color: var(--mat-sys-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.question-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+  margin-left: auto;
+}
+
+.add-child-button {
+  color: var(--mat-sys-primary);
+}
+
+.add-child-button:hover {
+  background-color: var(--mat-sys-primary-container);
+}
+
+.add-child-button:disabled {
+  opacity: 0.5;
+}
+
+/* Level-based avatar styling */
+.standard-avatar.level-1 {
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.standard-avatar.level-2 {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.standard-avatar.level-3 {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.standard-avatar.level-4 {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.standard-avatar.level-5 {
+  background-color: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+}
+
+/* Children container styling */
+.question-children {
+  margin-top: var(--spacing-md);
+}
+
+.children-level-2 {
+  border-left: 3px solid var(--mat-sys-primary-container);
+  padding-left: var(--spacing-md);
+  margin-left: var(--spacing-sm);
+}
+
+.children-level-3 {
+  border-left: 3px solid var(--mat-sys-secondary-container);
+  padding-left: var(--spacing-md);
+  margin-left: var(--spacing-sm);
+}
+
+.children-level-4 {
+  border-left: 3px solid var(--mat-sys-tertiary-container);
+  padding-left: var(--spacing-md);
+  margin-left: var(--spacing-sm);
+}
+
+.children-level-5 {
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  padding-left: var(--spacing-md);
+  margin-left: var(--spacing-sm);
+}
+
+.dq-questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* =============================================================================
+   Data Quality (DQ) Specific Styling
+   ============================================================================= */
+
+.dq-section-content {
+  background-color: var(--mat-sys-secondary-container);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+}
+
+.dq-monthly-entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.dq-month-panel {
+  background-color: var(--mat-sys-surface) !important;
+  border: 1px solid var(--mat-sys-outline-variant) !important;
+  border-radius: var(--border-radius-md) !important;
+}
+
+.monthly-entries-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.monthly-entries-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.monthly-entry-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.subsections-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.evaluations-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.evaluation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.dq-data-elements {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+.dq-data-element {
+  background-color: var(--mat-sys-surface-container-lowest);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+}
+
+.data-elements-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.data-elements-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.data-element-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dq-evaluations {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.dq-evaluation-item {
+  background-color: var(--mat-sys-surface);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+/* =============================================================================
+   Action Buttons
+   ============================================================================= */
+
+/* Section Actions - Delete Button */
+.section-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  margin-top: var(--spacing-lg);
+  background-color: var(--mat-sys-surface-container-lowest);
+}
+
+.section-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.delete-section-button {
+  color: var(--mat-sys-error);
+  border-color: var(--mat-sys-error);
+  min-width: 120px;
+  height: 36px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: none;
+  border-radius: var(--border-radius-md);
+}
+
+.delete-section-button:hover {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.delete-section-button mat-icon {
+  margin-right: var(--spacing-xs);
+  font-size: 1rem;
+}
+
+/* =============================================================================
+   Form Submit Controls
+   ============================================================================= */
+
+.form-submit-controls {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--mat-sys-surface-container);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.submit-controls-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.submit-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.submit-button {
+  min-width: 140px;
+  height: 44px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.0071em;
+  text-transform: none;
+  border-radius: var(--border-radius-md);
+}
+
+.submit-button mat-icon {
+  margin-right: var(--spacing-xs);
+  font-size: 1.125rem;
+}
+
+.cancel-button {
+  min-width: 120px;
+  height: 44px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: none;
+  border-radius: var(--border-radius-md);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.form-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.form-status-indicator.has-errors {
+  color: var(--mat-sys-error);
+}
+
+.form-status-indicator.is-valid {
+  color: var(--mat-sys-tertiary);
+}
+
+.form-status-indicator mat-icon {
+  font-size: 1rem;
+}
+
+/* Submit controls loading state */
+.submit-controls-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+}
+
+.submit-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+}
+
+/* Remove Button Styling for Questions, Evaluations, etc. */
+.remove-button {
+  color: var(--mat-sys-error);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+}
+
+.remove-button:hover {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.remove-button mat-icon {
+  font-size: 1rem;
+}
+
+/* =============================================================================
+   Form Validation and States
+   ============================================================================= */
+
+.mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-error-wrapper {
+  padding-top: var(--spacing-xs);
+}
+
+.form-card.has-errors {
+  border-left: 4px solid var(--mat-sys-error);
+}
+
+.validation-summary {
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid var(--mat-sys-error);
+}
+
+/* =============================================================================
+   Responsive Design - Tablet (768px and up)
+   ============================================================================= */
+
+@media (min-width: 768px) {
+  .main-content {
+    padding: var(--spacing-lg);
+  }
+
+  .form-grid,
+  .settings-grid,
+  .question-form-grid,
+  .entry-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .third-width {
+    grid-column: span 1;
+  }
+
+  .toolbar-actions {
+    gap: var(--spacing-sm);
+  }
+
+  .toolbar-button {
+    min-width: 100px;
+  }
+
+  .add-section-area {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+  }
+
+  .dq-data-elements {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dq-evaluations {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dq-data-elements {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Tablet hierarchy adjustments */
+  .question-level-2,
+  .question-level-3,
+  .question-level-4,
+  .question-level-5 {
+    margin-left: calc(var(--spacing-lg) * 1);
+  }
+
+  .section-actions {
+    justify-content: space-between;
+    flex-direction: row;
+  }
+
+  .submit-controls-container {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .submit-actions {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+}
+
+/* =============================================================================
+   Responsive Design - Desktop (1024px and up)
+   ============================================================================= */
+
+@media (min-width: 1024px) {
+  .main-content {
+    padding: var(--spacing-xl);
+  }
+
+  .form-grid,
+  .settings-grid,
+  .question-form-grid,
+  .entry-form-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .half-width {
+    grid-column: span 2;
+  }
+
+  .toolbar-title {
+    font-size: 1.5rem;
+  }
+
+  .form-card mat-card-title {
+    font-size: 1.5rem;
+  }
+
+  .sections-title {
+    flex-wrap: nowrap;
+  }
+
+  .dq-data-elements {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dq-evaluations {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =============================================================================
+   Responsive Design - Large Desktop (1200px and up)
+   ============================================================================= */
+
+@media (min-width: 1200px) {
+  .checklist-form {
+    max-width: 1400px;
+  }
+
+  .form-grid,
+  .settings-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .half-width {
+    grid-column: span 2;
+  }
+
+  .third-width {
+    grid-column: span 1;
+  }
+}
+
+/* =============================================================================
+   Accessibility and Motion Preferences
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .form-card,
+  .section-panel,
+  .add-section-area {
+    transition: none;
+  }
+
+  .mat-expansion-panel-header-title,
+  .mat-expansion-panel-header-description {
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .form-card,
+  .section-panel,
+  .questions-card,
+  .section-settings-card {
+    border-width: 2px;
+  }
+
+  .add-section-area {
+    border-width: 3px;
+  }
+
+  .section-type-indicator,
+  .section-count-chips mat-chip {
+    border: 1px solid currentColor;
+  }
+}
+
+/* =============================================================================
+   Print Styles
+   ============================================================================= */
+
+@media print {
+  .checklist-edit-container {
+    background-color: white;
+  }
+
+  .app-toolbar,
+  .toolbar-actions,
+  .add-section-area,
+  .questions-actions,
+  .section-actions {
+    display: none;
+  }
+
+  .main-content {
+    padding: 0;
+  }
+
+  .form-card,
+  .section-panel,
+  .questions-card {
+    box-shadow: none;
+    border: 1px solid #000;
+    break-inside: avoid;
+    margin-bottom: 16px;
+  }
+
+  .form-grid,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================================================
+   Focus Management and Keyboard Navigation
+   ============================================================================= */
+
+.mat-mdc-form-field:focus-within {
+  /* Material handles focus styles, prevent custom interference */
+}
+
+.section-panel:focus-within .mat-expansion-panel-header {
+  background-color: var(--mat-sys-secondary-container);
+}
+
+/* Ensure proper focus order for keyboard navigation */
+.toolbar-actions button:focus,
+.add-section-button:focus,
+.section-actions button:focus {
+  /* Material components handle focus indicators */
+  position: relative;
+  z-index: 2;
+}
+
+/* =============================================================================
+   Animation and Transitions
+   ============================================================================= */
+
+.form-card,
+.section-panel {
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.add-section-area {
+  transition:
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading state animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-card,
+.loading-card {
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================================================
+   Error and Success States
+   ============================================================================= */
+
+.success-state {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+  border: 1px solid var(--mat-sys-tertiary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.warning-state {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+  border: 1px solid var(--mat-sys-secondary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* =============================================================================
+   Custom Material Overrides for Component-Specific Needs
+   ============================================================================= */
+
+/* Ensure consistent chip styling within this component */
+.section-count-chips .mat-mdc-chip,
+.section-type-indicator {
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1.33;
+  letter-spacing: 0.0333em;
+}
+
+/* Consistent icon sizing */
+.form-card mat-icon,
+.section-panel mat-icon,
+.toolbar-title mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Ensure proper Material elevation values are used */
+.form-card {
+  --mat-sys-level1:
+    0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --mat-sys-level2:
+    0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile scrolling optimization */
+@media (max-width: 768px) {
+  .sections-accordion {
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .main-content {
+    padding-bottom: calc(120px + var(--spacing-xxl));
+  }
+
+  /* Mobile hierarchy adjustments */
+  .question-level-2 {
+    margin-left: var(--spacing-lg);
+  }
+
+  .question-level-3 {
+    margin-left: calc(var(--spacing-lg) * 1.5);
+  }
+
+  .question-level-4 {
+    margin-left: calc(var(--spacing-lg) * 2);
+  }
+
+  .question-level-5 {
+    margin-left: calc(var(--spacing-lg) * 2.5);
+  }
+
+  .question-level-2::before,
+  .question-level-3::before,
+  .question-level-4::before,
+  .question-level-5::before {
+    left: calc(-1 * var(--spacing-sm));
+  }
+
+  .question-actions {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .submit-controls-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  .submit-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .submit-button,
+  .cancel-button {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .form-status-indicator {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .section-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  .delete-section-button {
+    width: 100%;
+  }
+}

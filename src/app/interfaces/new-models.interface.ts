@@ -26,8 +26,8 @@ export interface StdQuestion {
   score: number;
 }
 
+// SectionType
 // Data quality question
-
 export interface DQQuestion {
   id: string;
   subsections: Subsection[];

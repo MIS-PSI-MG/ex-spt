@@ -1,9 +1,6 @@
 /* Global Styles for Health Assessment Portal with Angular Material */
 /* Mobile-First Responsive Design */
 
-/* Import Angular Material theme */
-@import "./custom-theme.scss";
-
 /* Import Material Design fixes for UI bugs */
 @import "./material-fixes.css";
 
@@ -582,5 +579,11 @@ p {
   }
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
