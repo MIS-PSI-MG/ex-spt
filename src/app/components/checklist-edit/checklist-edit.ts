@@ -35,7 +35,7 @@ import {
   DataQualityEvaluation,
   MonthlyEntry,
   DataElement,
-  Evaluation,
+  Evaluation
 } from "../../interfaces/new-models.interface";
 import { ChecklistService } from "../../services/checklist.service";
 
@@ -945,7 +945,20 @@ export class ChecklistEdit implements OnInit {
     });
   }
 
-  // TrackBy function for better performance with *ngFor
+  // TrackBy functions for better performance
+  trackById(index: number, item: AbstractControl | any): string | number {
+    // For FormGroups/FormControls, check for an 'id' control
+    if (item && typeof item.get === 'function' && item.get('id')) {
+      return item.get('id').value;
+    }
+    // For plain objects, check for an 'id' property
+    if (item && item.id) {
+      return item.id;
+    }
+    // Fallback for items without a unique ID
+    return index;
+  }
+
   trackByIndex(index: number, item: any): number {
     return index;
   }

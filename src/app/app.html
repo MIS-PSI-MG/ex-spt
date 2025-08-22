@@ -1,3 +1,63 @@
-<!-- This file is no longer used as the template is now inline in app.ts -->
-<!-- The template has been moved to the component's template property for better organization -->
+<!-- <mat-sidenav-container class="sidenav-container">
+    <mat-sidenav
+      #drawer
+      class="sidenav"
+      fixedInViewport
+      [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+      [mode]="(isHandset$ | async) ? 'over' : 'side'"
+      [opened]="(isHandset$ | async) === false"
+    >
+      <mat-toolbar class="sidenav-toolbar">📋 Assessment Portal</mat-toolbar>
+      <mat-nav-list>
+        <a
+          mat-list-item
+          routerLink="/checklists"
+          routerLinkActive="active-link"
+        >
+          <mat-icon matListItemIcon>checklist</mat-icon>
+          <span matListItemTitle>Checklists</span>
+        </a>
+        <a
+          mat-list-item
+          routerLink="/assessment-quiz"
+          routerLinkActive="active-link"
+        >
+          <mat-icon matListItemIcon>quiz</mat-icon>
+          <span matListItemTitle>Take Assessment</span>
+        </a>
+        <a mat-list-item routerLink="/results" routerLinkActive="active-link">
+          <mat-icon matListItemIcon>analytics</mat-icon>
+          <span matListItemTitle>Results</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+      <mat-toolbar color="primary" class="main-toolbar">
+        <button
+          type="button"
+          aria-label="Toggle sidenav"
+          mat-icon-button
+          (click)="drawer.toggle()"
+          *ngIf="isHandset$ | async"
+        >
+          <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+        </button>
+        <span class="toolbar-title">📋 Assessment Portal</span>
+        <span class="toolbar-subtitle">Health Program Checklist System</span>
+      </mat-toolbar>
+
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+
+      <footer class="app-footer">
+        <mat-toolbar class="footer-toolbar">
+          <span
+            >&copy; 2024 Health Assessment System. Built with Angular 20 &
+            Material Design.</span
+          >
+        </mat-toolbar>
+      </footer>
+    </mat-sidenav-content>
+  </mat-sidenav-container> -->
 <router-outlet></router-outlet>

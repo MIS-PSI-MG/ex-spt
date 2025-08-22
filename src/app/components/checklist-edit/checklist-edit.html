@@ -53,7 +53,8 @@
   <!-- Main Content -->
   <div class="main-content">
     <!-- Loading State -->
-    <div *ngIf="!checklistForm()" class="loading-state">
+    @if (!checklistForm()) {
+      <div class="loading-state">
       <mat-card class="loading-card">
         <mat-card-content class="loading-content">
           <mat-spinner diameter="48"></mat-spinner>
@@ -64,11 +65,11 @@
         </mat-card-content>
       </mat-card>
     </div>
+    }
 
     <!-- Form Container -->
-    <form
-      *ngIf="checklistForm() as form"
-      [formGroup]="form"
+    @if (checklistForm(); as form) {
+      <form [formGroup]="form"
       (ngSubmit)="onSubmit()"
       novalidate
       class="checklist-form"
@@ -98,12 +99,16 @@
               />
               <mat-icon matSuffix>fingerprint</mat-icon>
               <mat-hint>Must be unique (minimum 3 characters)</mat-hint>
-              <mat-error *ngIf="form.get('id')?.hasError('required')">
-                Checklist ID is required
-              </mat-error>
-              <mat-error *ngIf="form.get('id')?.hasError('minlength')">
-                ID must be at least 3 characters long
-              </mat-error>
+              @if (form.get('id')?.hasError('required')) {
+                <mat-error>
+                  Checklist ID is required
+                </mat-error>
+              }
+              @if (form.get('id')?.hasError('minlength')) {
+                <mat-error>
+                  ID must be at least 3 characters long
+                </mat-error>
+              }
             </mat-form-field>
 
             <!-- Row 2 -->
@@ -116,9 +121,11 @@
                 required
               />
               <mat-icon matSuffix>business</mat-icon>
-              <mat-error *ngIf="form.get('department')?.hasError('required')">
-                Department is required
-              </mat-error>
+              @if (form.get('department')?.hasError('required')) {
+                <mat-error>
+                  Department is required
+                </mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="half-width">
@@ -130,9 +137,11 @@
                 required
               />
               <mat-icon matSuffix>local_hospital</mat-icon>
-              <mat-error *ngIf="form.get('health_area')?.hasError('required')">
-                Health area is required
-              </mat-error>
+              @if (form.get('health_area')?.hasError('required')) {
+                <mat-error>
+                  Health area is required
+                </mat-error>
+              }
             </mat-form-field>
 
             <!-- Row 3 -->
@@ -149,15 +158,21 @@
               />
               <mat-icon matSuffix>layers</mat-icon>
               <mat-hint>Organizational unit level (0-10)</mat-hint>
-              <mat-error *ngIf="form.get('ou_level')?.hasError('required')">
-                OU Level is required
-              </mat-error>
-              <mat-error *ngIf="form.get('ou_level')?.hasError('min')">
-                Must be at least 0
-              </mat-error>
-              <mat-error *ngIf="form.get('ou_level')?.hasError('max')">
-                Must not exceed 10
-              </mat-error>
+              @if (form.get('ou_level')?.hasError('required')) {
+                <mat-error>
+                  OU Level is required
+                </mat-error>
+              }
+              @if (form.get('ou_level')?.hasError('min')) {
+                <mat-error>
+                  Must be at least 0
+                </mat-error>
+              }
+              @if (form.get('ou_level')?.hasError('max')) {
+                <mat-error>
+                  Must not exceed 10
+                </mat-error>
+              }
             </mat-form-field>
           </div>
         </mat-card-content>
@@ -201,12 +216,11 @@
 
           <!-- Sections List -->
           <mat-accordion class="sections-accordion" formArrayName="sections">
-            <mat-expansion-panel
-              *ngFor="let sectionForm of sectionsFormArray.controls;
-                      let sectionIndex = index; trackBy: trackByIndex"
-              [formGroupName]="sectionIndex"
-              class="section-panel"
-            >
+            @for (sectionForm of sectionsFormArray.controls; track sectionForm; let sectionIndex = $index) {
+              <mat-expansion-panel
+                [formGroupName]="sectionIndex"
+                class="section-panel"
+              >
               <mat-expansion-panel-header>
                 <mat-panel-title>
                   <mat-icon class="section-icon">folder</mat-icon>
@@ -254,11 +268,11 @@
                           placeholder="Enter descriptive section title"
                           required
                         />
-                        <mat-error
-                          *ngIf="sectionForm.get('title')?.hasError('required')"
-                        >
-                          Section title is required
-                        </mat-error>
+                        @if (sectionForm.get('title')?.hasError('required')) {
+                          <mat-error>
+                            Section title is required
+                          </mat-error>
+                        }
                       </mat-form-field>
 
                       <mat-form-field appearance="outline" class="half-width">
@@ -274,11 +288,11 @@
                         <mat-hint
                           >Total possible points for this section</mat-hint
                         >
-                        <mat-error
-                          *ngIf="sectionForm.get('maxScore')?.hasError('required')"
-                        >
-                          Maximum score is required
-                        </mat-error>
+                        @if (sectionForm.get('maxScore')?.hasError('required')) {
+                          <mat-error>
+                            Maximum score is required
+                          </mat-error>
+                        }
                       </mat-form-field>
 
                       <mat-form-field appearance="outline" class="half-width">
@@ -288,12 +302,11 @@
                           (selectionChange)="onSectionTypeChange(sectionIndex)"
                           required
                         >
-                          <mat-option
-                            *ngFor="let option of sectionTypeOptions()"
-                            [value]="option.value"
-                          >
-                            {{ option.label }}
-                          </mat-option>
+                          @for (option of sectionTypeOptions(); track option) {
+                            <mat-option [value]="option.value">
+                              {{ option.label }}
+                            </mat-option>
+                          }
                         </mat-select>
                         <mat-hint
                           >Choose the appropriate question type</mat-hint
@@ -311,48 +324,49 @@
                       Questions
                     </mat-card-title>
                     <div class="questions-actions">
-                      <button
-                        mat-mini-fab
-                        color="primary"
-                        type="button"
-                        *ngIf="getSectionType(sectionIndex) === 'standard'"
-                        (click)="addStdQuestion(sectionIndex)"
-                        [disabled]="isSubmitting()"
-                        matTooltip="Add Root Question"
-                      >
-                        <mat-icon>add</mat-icon>
-                      </button>
-
-                      <button
-                        mat-mini-fab
-                        color="primary"
-                        type="button"
-                        *ngIf="getSectionType(sectionIndex) === 'dq'"
-                        (click)="addDQQuestion(sectionIndex)"
-                        [disabled]="isSubmitting()"
-                        matTooltip="Add Data Quality Question"
-                      >
-                        <mat-icon>add</mat-icon>
-                      </button>
+                      @if (getSectionType(sectionIndex) === 'standard') {
+                        <button
+                          mat-mini-fab
+                          color="primary"
+                          type="button"
+                          (click)="addStdQuestion(sectionIndex)"
+                          [disabled]="isSubmitting()"
+                          matTooltip="Add Root Question"
+                        >
+                          <mat-icon>add</mat-icon>
+                        </button>
+                      }
+                      @if (getSectionType(sectionIndex) === 'dq') {
+                        <button
+                          mat-mini-fab
+                          color="primary"
+                          type="button"
+                          (click)="addDQQuestion(sectionIndex)"
+                          [disabled]="isSubmitting()"
+                          matTooltip="Add Data Quality Question"
+                        >
+                          <mat-icon>add</mat-icon>
+                        </button>
+                      }
                     </div>
                   </mat-card-header>
 
                   <mat-card-content>
                     <!-- Standard Questions - Hierarchical Display -->
-                    <div
-                      *ngIf="getSectionType(sectionIndex) === 'standard'"
-                      formArrayName="questions"
-                      class="standard-questions-container"
-                    >
-                      <!-- Recursive template for hierarchical questions -->
-                      <ng-container
-                        *ngTemplateOutlet="questionTemplate; context: {
-                          questions: getHierarchicalQuestions(sectionIndex),
-                          sectionIndex: sectionIndex,
-                          level: 1
-                        }"
+                    @if (getSectionType(sectionIndex) === 'standard') {
+                      <div
+                        formArrayName="questions"
+                        class="standard-questions-container"
                       >
-                      </ng-container>
+                      <!-- Recursive template for hierarchical questions -->
+                        <ng-container
+                          *ngTemplateOutlet="questionTemplate; context: {
+                            questions: getHierarchicalQuestions(sectionIndex),
+                            sectionIndex: sectionIndex,
+                            level: 1
+                          }"
+                        >
+                        </ng-container>
 
                       <!-- Template definition for recursive questions -->
                       <ng-template
@@ -361,11 +375,11 @@
                         let-sectionIndex="sectionIndex"
                         let-level="level"
                       >
-                        <div
-                          *ngFor="let questionData of questions; trackBy: trackByIndex"
-                          class="question-hierarchy-item"
-                          [class]="'question-level-' + questionData.level"
-                        >
+                        @for (questionData of questions; track questionData) {
+                          <div
+                            class="question-hierarchy-item"
+                            [class]="'question-level-' + questionData.level"
+                          >
                           <mat-card
                             [formGroupName]="questionData.index"
                             class="question-card standard-question-card"
@@ -393,17 +407,16 @@
                                 >
                               </mat-card-title>
                               <mat-card-subtitle>
-                                <span
-                                  *ngIf="questionData.level === 1"
-                                  class="root-question-label"
-                                  >Root Question</span
-                                >
-                                <span
-                                  *ngIf="questionData.level > 1"
-                                  class="child-question-label"
-                                >
-                                  Child of Level {{ questionData.level - 1 }}
-                                </span>
+                                @if (questionData.level === 1) {
+                                  <span class="root-question-label"
+                                    >Root Question</span
+                                  >
+                                }
+                                @if (questionData.level > 1) {
+                                  <span class="child-question-label">
+                                    Child of Level {{ questionData.level - 1 }}
+                                  </span>
+                                }
                               </mat-card-subtitle>
 
                               <div class="question-actions">
@@ -450,11 +463,11 @@
                                   <mat-hint
                                     >Clear, concise question text</mat-hint
                                   >
-                                  <mat-error
-                                    *ngIf="questionData.control.get('subject')?.hasError('required')"
-                                  >
-                                    Question text is required
-                                  </mat-error>
+                                  @if (questionData.control.get('subject')?.hasError('required')) {
+                                    <mat-error>
+                                      Question text is required
+                                    </mat-error>
+                                  }
                                 </mat-form-field>
 
                                 <mat-form-field
@@ -476,37 +489,37 @@
                                     <mat-option [value]="5">Level 5</mat-option>
                                   </mat-select>
                                   <mat-hint>Question hierarchy level</mat-hint>
-                                  <mat-error
-                                    *ngIf="questionData.control.get('level')?.hasError('required')"
-                                  >
-                                    Level is required
-                                  </mat-error>
+                                  @if (questionData.control.get('level')?.hasError('required')) {
+                                    <mat-error>
+                                      Level is required
+                                    </mat-error>
+                                  }
                                 </mat-form-field>
 
-                                <mat-form-field
-                                  appearance="outline"
-                                  class="third-width"
-                                  *ngIf="questionData.level > 1"
-                                >
+                                @if (questionData.level > 1) {
+                                  <mat-form-field
+                                    appearance="outline"
+                                    class="third-width"
+                                  >
                                   <mat-label>Parent Question</mat-label>
                                   <mat-select formControlName="parentId">
                                     <mat-option value=""
                                       >No Parent (Root)</mat-option
                                     >
-                                    <mat-option
-                                      *ngFor="let parent of getAvailableParentQuestions(sectionIndex, questionData.index)"
-                                      [value]="parent.id"
+                                    @for (parent of getAvailableParentQuestions(sectionIndex, questionData.index); track parent) {
+                                      <mat-option [value]="parent.id">
+                                        Level {{ parent.level }}: {{ parent.subject
+                                        | slice:0:50 }}{{ parent.subject.length > 50 ?
+                                        '...' : '' }}
+                                      </mat-option>
+                                    }
+                                    </mat-select>
+                                    <mat-hint
+                                      >Select parent question from higher
+                                      levels</mat-hint
                                     >
-                                      Level {{ parent.level }}: {{
-                                      parent.subject | slice:0:50 }}{{
-                                      parent.subject.length > 50 ? '...' : '' }}
-                                    </mat-option>
-                                  </mat-select>
-                                  <mat-hint
-                                    >Select parent question from higher
-                                    levels</mat-hint
-                                  >
-                                </mat-form-field>
+                                  </mat-form-field>
+                                }
 
                                 <mat-form-field
                                   appearance="outline"
@@ -524,27 +537,27 @@
                                   <mat-hint
                                     >Points awarded for this question</mat-hint
                                   >
-                                  <mat-error
-                                    *ngIf="questionData.control.get('score')?.hasError('required')"
-                                  >
-                                    Score is required
-                                  </mat-error>
-                                  <mat-error
-                                    *ngIf="questionData.control.get('score')?.hasError('min')"
-                                  >
-                                    Score must be 0 or greater
-                                  </mat-error>
+                                  @if (questionData.control.get('score')?.hasError('required')) {
+                                    <mat-error>
+                                      Score is required
+                                    </mat-error>
+                                  }
+                                  @if (questionData.control.get('score')?.hasError('min')) {
+                                    <mat-error>
+                                      Score must be 0 or greater
+                                    </mat-error>
+                                  }
                                 </mat-form-field>
                               </div>
                             </mat-card-content>
                           </mat-card>
 
                           <!-- Render children recursively -->
-                          <div
-                            *ngIf="questionData.children && questionData.children.length > 0"
-                            class="question-children"
-                            [class]="'children-level-' + (questionData.level + 1)"
-                          >
+                          @if (questionData.children && questionData.children.length > 0) {
+                            <div
+                              class="question-children"
+                              [class]="'children-level-' + (questionData.level + 1)"
+                            >
                             <ng-container
                               *ngTemplateOutlet="questionTemplate; context: {
                                 questions: questionData.children,
@@ -552,583 +565,281 @@
                                 level: questionData.level + 1
                               }"
                             >
-                            </ng-container>
-                          </div>
+                              </ng-container>
+                            </div>
+                          }
                         </div>
+                      }
                       </ng-template>
                     </div>
+                  }
 
                     <!-- Data Quality Questions -->
-                    <div
-                      *ngIf="getSectionType(sectionIndex) === 'dq'"
-                      formArrayName="questions"
-                      class="dq-questions-container"
-                    >
-                      <mat-card
-                        *ngFor="let questionForm of getSectionQuestionsArray(sectionIndex).controls;
-                                let questionIndex = index; trackBy: trackByIndex"
-                        [formGroupName]="questionIndex"
-                        class="question-card dq-question-card"
-                      >
-                        <mat-card-header>
-                          <div mat-card-avatar class="dq-avatar">
-                            <mat-icon>analytics</mat-icon>
-                          </div>
-                          <mat-card-title
-                            >Data Quality Question {{ questionIndex + 1
-                            }}</mat-card-title
-                          >
-                          <mat-card-subtitle
-                            >Configure data quality
-                            evaluation</mat-card-subtitle
-                          >
-
-                          <button
-                            mat-icon-button
-                            color="warn"
-                            type="button"
-                            (click)="removeDQQuestion(sectionIndex, questionIndex)"
-                            [disabled]="isSubmitting()"
-                            matTooltip="Remove Question"
-                            class="remove-button"
-                          >
-                            <mat-icon>delete</mat-icon>
-                          </button>
-                        </mat-card-header>
-
-                        <mat-card-content>
-                          <!-- Subsections -->
-                          <div class="subsections-container">
-                            <div class="subsections-header">
-                              <h3 class="mat-h3">Subsections</h3>
-                              <button
-                                mat-mini-fab
-                                color="accent"
-                                type="button"
-                                (click)="addSubsection(sectionIndex, questionIndex)"
-                                [disabled]="isSubmitting()"
-                                matTooltip="Add Subsection"
-                              >
-                                <mat-icon>add</mat-icon>
+                    @if (getSectionType(sectionIndex) === 'dq') {
+                      <div formArrayName="questions" class="dq-questions-container">
+                        @for (questionForm of getSectionQuestionsArray(sectionIndex).controls; track questionForm; let questionIndex = $index) {
+                          <mat-card [formGroupName]="questionIndex" class="question-card dq-question-card">
+                            <mat-card-header>
+                              <div mat-card-avatar class="dq-avatar">
+                                <mat-icon>analytics</mat-icon>
+                              </div>
+                              <mat-card-title>Data Quality Question {{ questionIndex + 1 }}</mat-card-title>
+                              <mat-card-subtitle>Configure data quality evaluation</mat-card-subtitle>
+                              <button mat-icon-button color="warn" type="button" (click)="removeDQQuestion(sectionIndex, questionIndex)" [disabled]="isSubmitting()" matTooltip="Remove Question" class="remove-button">
+                                <mat-icon>delete</mat-icon>
                               </button>
-                            </div>
+                            </mat-card-header>
 
-                            <mat-accordion
-                              formArrayName="subsections"
-                              class="subsections-accordion"
-                            >
-                              <mat-expansion-panel
-                                *ngFor="let subsectionForm of getDQSubsectionsArray(sectionIndex, questionIndex).controls;
-                                        let subsectionIndex = index; trackBy: trackByIndex"
-                                [formGroupName]="subsectionIndex"
-                                class="subsection-panel"
-                              >
-                                <mat-expansion-panel-header>
-                                  <mat-panel-title>
-                                    <mat-icon>list_alt</mat-icon>
-                                    Subsection {{ subsectionIndex + 1 }}
-                                  </mat-panel-title>
-                                  <mat-panel-description>
-                                    {{ getSubsectionQuestionsArray(sectionIndex,
-                                    questionIndex, subsectionIndex).length }}
-                                    evaluations
-                                  </mat-panel-description>
-                                </mat-expansion-panel-header>
+                            <mat-card-content>
+                              <!-- Subsections -->
+                              <div class="subsections-container">
+                                <div class="subsections-header">
+                                  <h3 class="mat-h3">Subsections</h3>
+                                  <button mat-mini-fab color="accent" type="button" (click)="addSubsection(sectionIndex, questionIndex)" [disabled]="isSubmitting()" matTooltip="Add Subsection">
+                                    <mat-icon>add</mat-icon>
+                                  </button>
+                                </div>
 
-                                <div class="subsection-content">
-                                  <!-- Subsection Instructions -->
-                                  <mat-form-field
-                                    appearance="outline"
-                                    class="full-width"
-                                  >
-                                    <mat-label>Instructions</mat-label>
-                                    <textarea
-                                      matInput
-                                      formControlName="instruction"
-                                      placeholder="Enter detailed instructions for this subsection"
-                                      rows="4"
-                                      required
-                                    ></textarea>
-                                    <mat-hint
-                                      >Provide clear guidance for
-                                      evaluators</mat-hint
-                                    >
-                                    <mat-error
-                                      *ngIf="subsectionForm.get('instruction')?.hasError('required')"
-                                    >
-                                      Instructions are required
-                                    </mat-error>
-                                  </mat-form-field>
+                                <mat-accordion formArrayName="subsections" class="subsections-accordion">
+                                  @for (subsectionForm of getDQSubsectionsArray(sectionIndex, questionIndex).controls; track subsectionForm; let subsectionIndex = $index) {
+                                    <mat-expansion-panel [formGroupName]="subsectionIndex" class="subsection-panel">
+                                      <mat-expansion-panel-header>
+                                        <mat-panel-title>
+                                          <mat-icon>list_alt</mat-icon>
+                                          Subsection {{ subsectionIndex + 1 }}
+                                        </mat-panel-title>
+                                        <mat-panel-description>
+                                          {{ getSubsectionQuestionsArray(sectionIndex, questionIndex, subsectionIndex).length }} evaluations
+                                        </mat-panel-description>
+                                      </mat-expansion-panel-header>
 
-                                  <!-- Data Quality Evaluations -->
-                                  <div class="evaluations-container">
-                                    <div class="evaluations-header">
-                                      <h4 class="mat-h4">
-                                        Data Quality Evaluations
-                                      </h4>
-                                      <button
-                                        mat-mini-fab
-                                        color="primary"
-                                        type="button"
-                                        (click)="addDataQualityEvaluation(sectionIndex, questionIndex, subsectionIndex)"
-                                        [disabled]="isSubmitting()"
-                                        matTooltip="Add Evaluation"
-                                      >
-                                        <mat-icon>add</mat-icon>
-                                      </button>
-                                    </div>
+                                      <div class="subsection-content">
+                                        <!-- Subsection Instructions -->
+                                        <mat-form-field appearance="outline" class="full-width">
+                                          <mat-label>Instructions</mat-label>
+                                          <textarea matInput formControlName="instruction" placeholder="Enter detailed instructions for this subsection" rows="4" required></textarea>
+                                          <mat-hint>Provide clear guidance for evaluators</mat-hint>
+                                          @if (subsectionForm.get('instruction')?.hasError('required')) {
+                                            <mat-error>Instructions are required</mat-error>
+                                          }
+                                        </mat-form-field>
 
-                                    <div
-                                      formArrayName="questions"
-                                      class="evaluations-list"
-                                    >
-                                      <mat-card
-                                        *ngFor="let evaluationForm of getSubsectionQuestionsArray(sectionIndex, questionIndex, subsectionIndex).controls;
-                                                let evaluationIndex = index; trackBy: trackByIndex"
-                                        [formGroupName]="evaluationIndex"
-                                        class="evaluation-card"
-                                      >
-                                        <mat-card-header>
-                                          <div
-                                            mat-card-avatar
-                                            class="evaluation-avatar"
-                                          >
-                                            <mat-icon>rate_review</mat-icon>
+                                        <!-- Data Quality Evaluations -->
+                                        <div class="evaluations-container">
+                                          <div class="evaluations-header">
+                                            <h4 class="mat-h4">Data Quality Evaluations</h4>
+                                            <button mat-mini-fab color="primary" type="button" (click)="addDataQualityEvaluation(sectionIndex, questionIndex, subsectionIndex)" [disabled]="isSubmitting()" matTooltip="Add Evaluation">
+                                              <mat-icon>add</mat-icon>
+                                            </button>
                                           </div>
-                                          <mat-card-title
-                                            >Evaluation {{ evaluationIndex + 1
-                                            }}</mat-card-title
-                                          >
-                                          <mat-card-subtitle
-                                            >Configure evaluation
-                                            criteria</mat-card-subtitle
-                                          >
 
-                                          <button
-                                            mat-icon-button
-                                            color="warn"
-                                            type="button"
-                                            (click)="removeDataQualityEvaluation(sectionIndex, questionIndex, subsectionIndex, evaluationIndex)"
-                                            [disabled]="isSubmitting()"
-                                            matTooltip="Remove Evaluation"
-                                            class="remove-button"
-                                          >
-                                            <mat-icon>delete</mat-icon>
-                                          </button>
-                                        </mat-card-header>
+                                          <div formArrayName="questions" class="evaluations-list">
+                                            @for (evaluationForm of getSubsectionQuestionsArray(sectionIndex, questionIndex, subsectionIndex).controls; track evaluationForm; let evaluationIndex = $index) {
+                                              <mat-card [formGroupName]="evaluationIndex" class="evaluation-card">
+                                                <mat-card-header>
+                                                  <div mat-card-avatar class="evaluation-avatar">
+                                                    <mat-icon>rate_review</mat-icon>
+                                                  </div>
+                                                  <mat-card-title>Evaluation {{ evaluationIndex + 1 }}</mat-card-title>
+                                                  <mat-card-subtitle>Configure evaluation criteria</mat-card-subtitle>
+                                                  <button mat-icon-button color="warn" type="button" (click)="removeDataQualityEvaluation(sectionIndex, questionIndex, subsectionIndex, evaluationIndex)" [disabled]="isSubmitting()" matTooltip="Remove Evaluation" class="remove-button">
+                                                    <mat-icon>delete</mat-icon>
+                                                  </button>
+                                                </mat-card-header>
 
-                                        <mat-card-content>
-                                          <!-- Evaluation Topic -->
-                                          <mat-form-field
-                                            appearance="outline"
-                                            class="full-width"
-                                          >
-                                            <mat-label
-                                              >Evaluation Topic</mat-label
-                                            >
-                                            <input
-                                              matInput
-                                              formControlName="evaluationTopic"
-                                              placeholder="Enter evaluation topic or criteria"
-                                              required
-                                            />
-                                            <mat-hint
-                                              >What aspect of data quality is
-                                              being evaluated?</mat-hint
-                                            >
-                                            <mat-error
-                                              *ngIf="evaluationForm.get('evaluationTopic')?.hasError('required')"
-                                            >
-                                              Evaluation topic is required
-                                            </mat-error>
-                                          </mat-form-field>
+                                                <mat-card-content>
+                                                  <!-- Evaluation Topic -->
+                                                  <mat-form-field appearance="outline" class="full-width">
+                                                    <mat-label>Evaluation Topic</mat-label>
+                                                    <input matInput formControlName="evaluationTopic" placeholder="Enter evaluation topic or criteria" required />
+                                                    <mat-hint>What aspect of data quality is being evaluated?</mat-hint>
+                                                    <mat-error *ngIf="evaluationForm.get('evaluationTopic')?.hasError('required')">
+                                                      Evaluation topic is required
+                                                    </mat-error>
+                                                  </mat-form-field>
 
-                                          <!-- Monthly Entries Section -->
-                                          <div class="monthly-entries-section">
-                                            <div class="monthly-entries-header">
-                                              <h5 class="mat-h5">
-                                                Monthly Entries
-                                              </h5>
-                                              <button
-                                                mat-mini-fab
-                                                color="accent"
-                                                type="button"
-                                                (click)="addMonthlyEntry(sectionIndex, questionIndex, subsectionIndex, evaluationIndex)"
-                                                [disabled]="isSubmitting()"
-                                                matTooltip="Add Monthly Entry"
-                                              >
-                                                <mat-icon>add</mat-icon>
-                                              </button>
-                                            </div>
-
-                                            <mat-accordion
-                                              formArrayName="monthlyEntries"
-                                              class="monthly-entries-accordion"
-                                            >
-                                              <mat-expansion-panel
-                                                *ngFor="let entryForm of getMonthlyEntriesArray(sectionIndex, questionIndex, subsectionIndex, evaluationIndex).controls;
-                                                        let entryIndex = index; trackBy: trackByIndex"
-                                                [formGroupName]="entryIndex"
-                                                class="monthly-entry-panel"
-                                              >
-                                                <mat-expansion-panel-header>
-                                                  <mat-panel-title>
-                                                    <mat-icon>event</mat-icon>
-                                                    Entry {{ entryIndex + 1 }}
-                                                    <span class="entry-month">
-                                                      {{
-                                                      entryForm.get('month')?.value
-                                                      || 'No month set' }}
-                                                    </span>
-                                                  </mat-panel-title>
-                                                  <mat-panel-description>
-                                                    {{
-                                                    getDataElementsArray(sectionIndex,
-                                                    questionIndex,
-                                                    subsectionIndex,
-                                                    evaluationIndex,
-                                                    entryIndex).length }}
-                                                    elements • {{
-                                                    getEvaluationsArray(sectionIndex,
-                                                    questionIndex,
-                                                    subsectionIndex,
-                                                    evaluationIndex,
-                                                    entryIndex).length }}
-                                                    evaluations
-                                                  </mat-panel-description>
-                                                </mat-expansion-panel-header>
-
-                                                <div
-                                                  class="monthly-entry-content"
-                                                >
-                                                  <!-- Entry Basic Information -->
-                                                  <mat-card
-                                                    class="entry-basics-card"
-                                                  >
-                                                    <mat-card-header>
-                                                      <mat-card-title
-                                                        class="entry-title"
-                                                        >Entry
-                                                        Details</mat-card-title
-                                                      >
-                                                    </mat-card-header>
-
-                                                    <mat-card-content>
-                                                      <div
-                                                        class="entry-form-grid"
-                                                      >
-                                                        <mat-form-field
-                                                          appearance="outline"
-                                                          class="half-width"
-                                                        >
-                                                          <mat-label
-                                                            >Month</mat-label
-                                                          >
-                                                          <input
-                                                            matInput
-                                                            formControlName="month"
-                                                            placeholder="MM/YYYY"
-                                                            pattern="^(0[1-9]|1[0-2])\/\d{4}$"
-                                                            required
-                                                          />
-                                                          <mat-icon matSuffix
-                                                            >calendar_today</mat-icon
-                                                          >
-                                                          <mat-hint
-                                                            >Format: MM/YYYY
-                                                            (e.g.,
-                                                            01/2024)</mat-hint
-                                                          >
-                                                          <mat-error
-                                                            *ngIf="entryForm.get('month')?.hasError('required')"
-                                                          >
-                                                            Month is required
-                                                          </mat-error>
-                                                          <mat-error
-                                                            *ngIf="entryForm.get('month')?.hasError('pattern')"
-                                                          >
-                                                            Use format MM/YYYY
-                                                          </mat-error>
-                                                        </mat-form-field>
-
-                                                        <mat-form-field
-                                                          appearance="outline"
-                                                          class="half-width"
-                                                        >
-                                                          <mat-label
-                                                            >Answer/Response</mat-label
-                                                          >
-                                                          <textarea
-                                                            matInput
-                                                            formControlName="answer"
-                                                            placeholder="Enter evaluation response"
-                                                            rows="3"
-                                                            required
-                                                          ></textarea>
-                                                          <mat-hint
-                                                            >Detailed response
-                                                            to the
-                                                            evaluation</mat-hint
-                                                          >
-                                                          <mat-error
-                                                            *ngIf="entryForm.get('answer')?.hasError('required')"
-                                                          >
-                                                            Answer is required
-                                                          </mat-error>
-                                                        </mat-form-field>
-                                                      </div>
-                                                    </mat-card-content>
-                                                  </mat-card>
-
-                                                  <!-- Data Elements -->
-                                                  <mat-card
-                                                    class="data-elements-card"
-                                                  >
-                                                    <mat-card-header>
-                                                      <div
-                                                        mat-card-avatar
-                                                        class="elements-avatar"
-                                                      >
-                                                        <mat-icon
-                                                          >data_usage</mat-icon
-                                                        >
-                                                      </div>
-                                                      <mat-card-title
-                                                        >Data
-                                                        Elements</mat-card-title
-                                                      >
-                                                      <mat-card-subtitle
-                                                        >Quantitative data
-                                                        points</mat-card-subtitle
-                                                      >
-
-                                                      <button
-                                                        mat-mini-fab
-                                                        color="primary"
-                                                        type="button"
-                                                        (click)="addDataElement(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex)"
-                                                        [disabled]="isSubmitting()"
-                                                        matTooltip="Add Data Element"
-                                                        class="add-element-button"
-                                                      >
+                                                  <!-- Monthly Entries Section -->
+                                                  <div class="monthly-entries-section">
+                                                    <div class="monthly-entries-header">
+                                                      <h5 class="mat-h5">Monthly Entries</h5>
+                                                      <button mat-mini-fab color="accent" type="button" (click)="addMonthlyEntry(sectionIndex, questionIndex, subsectionIndex, evaluationIndex)" [disabled]="isSubmitting()" matTooltip="Add Monthly Entry">
                                                         <mat-icon>add</mat-icon>
                                                       </button>
-                                                    </mat-card-header>
+                                                    </div>
 
-                                                    <mat-card-content>
-                                                      <div
-                                                        formArrayName="elements"
-                                                        class="elements-list"
-                                                      >
-                                                        <mat-card
-                                                          *ngFor="let elementForm of getDataElementsArray(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex).controls;
-                                                                  let elementIndex = index; trackBy: trackByIndex"
-                                                          [formGroupName]="elementIndex"
-                                                          class="element-card"
-                                                        >
-                                                          <mat-card-header
-                                                            class="element-header"
-                                                          >
-                                                            <mat-card-title
-                                                              class="element-title"
-                                                            >
-                                                              <mat-icon
-                                                                >tag</mat-icon
-                                                              >
-                                                              Element {{
-                                                              elementIndex + 1
-                                                              }}
-                                                            </mat-card-title>
+                                                    <mat-accordion formArrayName="monthlyEntries" class="monthly-entries-accordion">
+                                                      <mat-expansion-panel *ngFor="let entryForm of getMonthlyEntriesArray(sectionIndex, questionIndex, subsectionIndex, evaluationIndex).controls; let entryIndex = index; trackBy: trackByIndex" [formGroupName]="entryIndex" class="monthly-entry-panel">
+                                                        <mat-expansion-panel-header>
+                                                          <mat-panel-title>
+                                                            <mat-icon>event</mat-icon>
+                                                            Entry {{ entryIndex + 1 }}
+                                                            <span class="entry-month">
+                                                              {{ entryForm.get('month')?.value || 'No month set' }}
+                                                            </span>
+                                                          </mat-panel-title>
+                                                          <mat-panel-description>
+                                                            {{ getDataElementsArray(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex).length }} elements • {{ getEvaluationsArray(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex).length }} evaluations
+                                                          </mat-panel-description>
+                                                        </mat-expansion-panel-header>
 
-                                                            <button
-                                                              mat-icon-button
-                                                              color="warn"
-                                                              type="button"
-                                                              (click)="removeDataElement(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex, elementIndex)"
-                                                              [disabled]="isSubmitting()"
-                                                              matTooltip="Remove Element"
-                                                            >
-                                                              <mat-icon
-                                                                >delete</mat-icon
-                                                              >
-                                                            </button>
-                                                          </mat-card-header>
+                                                        <div class="monthly-entry-content">
+                                                          <!-- Entry Basic Information -->
+                                                          <mat-card class="entry-basics-card">
+                                                            <mat-card-header>
+                                                              <mat-card-title class="entry-title">Entry Details</mat-card-title>
+                                                            </mat-card-header>
+                                                            <mat-card-content>
+                                                              <div class="entry-form-grid">
+                                                                <mat-form-field appearance="outline" class="half-width">
+                                                                  <mat-label>Month</mat-label>
+                                                                  <input matInput formControlName="month" placeholder="MM/YYYY" pattern="^(0[1-9]|1[0-2])\/\d{4}$" required />
+                                                                  <mat-icon matSuffix>calendar_today</mat-icon>
+                                                                  <mat-hint>Format: MM/YYYY (e.g., 01/2024)</mat-hint>
+                                                                  <mat-error *ngIf="entryForm.get('month')?.hasError('required')">
+                                                                    Month is required
+                                                                  </mat-error>
+                                                                  <mat-error *ngIf="entryForm.get('month')?.hasError('pattern')">
+                                                                    Use format MM/YYYY
+                                                                  </mat-error>
+                                                                </mat-form-field>
 
-                                                          <mat-card-content>
-                                                            <div
-                                                              class="element-form-grid"
-                                                            >
-                                                              <mat-form-field
-                                                                appearance="outline"
-                                                                class="half-width"
-                                                              >
-                                                                <mat-label
-                                                                  >Element
-                                                                  Name</mat-label
-                                                                >
-                                                                <input
-                                                                  matInput
-                                                                  formControlName="name"
-                                                                  placeholder="Enter element name"
-                                                                  required
-                                                                />
-                                                                <mat-error
-                                                                  *ngIf="elementForm.get('name')?.hasError('required')"
-                                                                >
-                                                                  Element name
-                                                                  is required
-                                                                </mat-error>
-                                                              </mat-form-field>
+                                                                <mat-form-field appearance="outline" class="half-width">
+                                                                  <mat-label>Answer/Response</mat-label>
+                                                                  <textarea matInput formControlName="answer" placeholder="Enter evaluation response" rows="3" required></textarea>
+                                                                  <mat-hint>Detailed response to the evaluation</mat-hint>
+                                                                  <mat-error *ngIf="entryForm.get('answer')?.hasError('required')">
+                                                                    Answer is required
+                                                                  </mat-error>
+                                                                </mat-form-field>
+                                                              </div>
+                                                            </mat-card-content>
+                                                          </mat-card>
 
-                                                              <mat-form-field
-                                                                appearance="outline"
-                                                                class="half-width"
-                                                              >
-                                                                <mat-label
-                                                                  >Data
-                                                                  Value</mat-label
-                                                                >
-                                                                <input
-                                                                  matInput
-                                                                  type="number"
-                                                                  formControlName="data"
-                                                                  placeholder="0"
-                                                                  min="0"
-                                                                  required
-                                                                />
-                                                                <mat-error
-                                                                  *ngIf="elementForm.get('data')?.hasError('required')"
-                                                                >
-                                                                  Data value is
-                                                                  required
-                                                                </mat-error>
-                                                                <mat-error
-                                                                  *ngIf="elementForm.get('data')?.hasError('min')"
-                                                                >
-                                                                  Value must be
-                                                                  0 or greater
-                                                                </mat-error>
-                                                              </mat-form-field>
-                                                            </div>
-                                                          </mat-card-content>
-                                                        </mat-card>
-                                                      </div>
-                                                    </mat-card-content>
-                                                  </mat-card>
+                                                          <!-- Data Elements -->
+                                                          <mat-card class="data-elements-card">
+                                                            <mat-card-header>
+                                                              <div mat-card-avatar class="elements-avatar">
+                                                                <mat-icon>data_usage</mat-icon>
+                                                              </div>
+                                                              <mat-card-title>Data Elements</mat-card-title>
+                                                              <mat-card-subtitle>Quantitative data points</mat-card-subtitle>
+                                                              <button mat-mini-fab color="primary" type="button" (click)="addDataElement(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex)" [disabled]="isSubmitting()" matTooltip="Add Data Element" class="add-element-button">
+                                                                <mat-icon>add</mat-icon>
+                                                              </button>
+                                                            </mat-card-header>
+                                                            <mat-card-content>
+                                                              <div formArrayName="elements" class="elements-list">
+                                                                <mat-card *ngFor="let elementForm of getDataElementsArray(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex).controls; let elementIndex = index; trackBy: trackByIndex" [formGroupName]="elementIndex" class="element-card">
+                                                                  <mat-card-header class="element-header">
+                                                                    <mat-card-title class="element-title">
+                                                                      <mat-icon>tag</mat-icon>
+                                                                      Element {{ elementIndex + 1 }}
+                                                                    </mat-card-title>
+                                                                    <button mat-icon-button color="warn" type="button" (click)="removeDataElement(sectionIndex, questionIndex, subsectionIndex, evaluationIndex, entryIndex, elementIndex)" [disabled]="isSubmitting()" matTooltip="Remove Element">
+                                                                      <mat-icon>delete</mat-icon>
+                                                                    </button>
+                                                                  </mat-card-header>
+                                                                  <mat-card-content>
+                                                                    <div class="element-form-grid">
+                                                                      <mat-form-field appearance="outline" class="half-width">
+                                                                        <mat-label>Element Name</mat-label>
+                                                                        <input matInput formControlName="name" placeholder="Enter element name" required />
+                                                                        <mat-error *ngIf="elementForm.get('name')?.hasError('required')">
+                                                                          Element name is required
+                                                                        </mat-error>
+                                                                      </mat-form-field>
 
-                                                  <!-- Evaluations -->
-                                                  <mat-card
-                                                    class="entry-evaluations-card"
-                                                  >
-                                                    <mat-card-header>
-                                                      <div
-                                                        mat-card-avatar
-                                                        class="evaluations-avatar"
-                                                      >
-                                                        <mat-icon
-                                                          >assessment</mat-icon
-                                                        >
-                                                      </div>
-                                                      <mat-card-title
-                                                        >Evaluations</mat-card-title
-                                                      >
-                                                      <mat-card-subtitle
-                                                        >Scoring and
-                                                        assessments</mat-card-subtitle
-                                                      >
-                                                    </mat-card-header></mat-card
-                                                  >
-                                                </div></mat-expansion-panel
-                                              ></mat-accordion
-                                            >
-                                          </div></mat-card-content
-                                        ></mat-card
-                                      >
-                                    </div>
-                                  </div>
-                                </div></mat-expansion-panel
-                              ></mat-accordion
-                            >
-                          </div></mat-card-content
-                        ></mat-card
-                      >
-                    </div></mat-card-content
-                  ></mat-card
-                >
+                                                                      <mat-form-field appearance="outline" class="half-width">
+                                                                        <mat-label>Data Value</mat-label>
+                                                                        <input matInput type="number" formControlName="data" placeholder="0" min="0" required />
+                                                                        <mat-error *ngIf="elementForm.get('data')?.hasError('required')">
+                                                                          Data value is required
+                                                                        </mat-error>
+                                                                        <mat-error *ngIf="elementForm.get('data')?.hasError('min')">
+                                                                          Value must be 0 or greater
+                                                                        </mat-error>
+                                                                      </mat-form-field>
+                                                                    </div>
+                                                                  </mat-card-content>
+                                                                </mat-card>
+                                                              </div>
+                                                            </mat-card-content>
+                                                          </mat-card>
 
-                <!-- Section Actions -->
-                <div class="section-actions">
-                  <div class="section-info">
-                    <span class="section-stats-text">
-                      {{ getSectionQuestionsArray(sectionIndex).length }}
-                      questions
-                    </span>
-                  </div>
-                  <button
-                    mat-stroked-button
-                    color="warn"
-                    type="button"
-                    (click)="removeSection(sectionIndex)"
-                    [disabled]="isSubmitting() || sectionsFormArray.length <= 1"
-                    class="delete-section-button"
-                  >
-                    <mat-icon>delete</mat-icon>
-                    Delete Section
-                  </button>
-                </div>
-              </div></mat-expansion-panel
-            ></mat-accordion
-          ></mat-card-content
-        ></mat-card
-      >
+                                                          <!-- Evaluations -->
+                                                          <mat-card class="entry-evaluations-card">
+                                                            <mat-card-header>
+                                                              <div mat-card-avatar class="evaluations-avatar">
+                                                                <mat-icon>assessment</mat-icon>
+                                                              </div>
+                                                              <mat-card-title>Evaluations</mat-card-title>
+                                                              <mat-card-subtitle>Scoring and assessments</mat-card-subtitle>
+                                                            </mat-card-header>
+                                                          </mat-card>
+                                                        </div>
+                                                      </mat-expansion-panel>
+                                                    </mat-accordion>
+                                                  </div>
+                                                </mat-card-content>
+                                              </mat-card>
+                                            }
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </mat-expansion-panel>
+                                  }
+                                </mat-accordion>
+                              </div>
+                            </mat-card-content>
+                          </mat-card>
+                        }
+                      </div>
+                    }
+                  </mat-card-content>
+                </mat-card>
+              </div>
 
-      <!-- Form Submit Controls -->
-      <div class="form-submit-controls">
-        <div class="submit-controls-container">
-          <div
-            class="form-status-indicator"
-            [class.has-errors]="!isFormValid() && checklistForm()?.touched"
-            [class.is-valid]="isFormValid()"
-          >
-            <mat-icon>{{ isFormValid() ? 'check_circle' : 'error' }}</mat-icon>
-            <span>
-              {{ isFormValid() ? 'Form is valid' : 'Please fix errors above' }}
-            </span>
-          </div>
+              <!-- Section Actions -->
+              <div class="section-actions">
+                <button mat-stroked-button color="warn" type="button" (click)="removeSection(sectionIndex)" [disabled]="isSubmitting()">
+                  <mat-icon>delete_sweep</mat-icon>
+                  Remove Section
+                </button>
+              </div>
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+      </mat-card-content>
+    </mat-card>
 
-          <div class="submit-actions">
-            <button
-              mat-stroked-button
-              type="button"
-              (click)="resetForm()"
-              [disabled]="isSubmitting()"
-              class="cancel-button"
-            >
-              <mat-icon>refresh</mat-icon>
-              Reset Form
-            </button>
-
-            <button
-              mat-raised-button
-              color="primary"
-              type="submit"
-              [disabled]="!isFormValid() || isSubmitting()"
-              class="submit-button"
-            >
-              <mat-icon>save</mat-icon>
-              {{ isSubmitting() ? 'Saving...' : 'Save Checklist' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Progress bar for submission -->
-        <mat-progress-bar
-          *ngIf="isSubmitting()"
-          mode="indeterminate"
-          class="submit-progress"
-        >
-        </mat-progress-bar>
+    <!-- Submission Footer -->
+    <div class="submission-footer">
+      <div class="validation-summary">
+        <mat-icon [color]="isFormValid() ? 'primary' : 'warn'">
+          {{ isFormValid() ? 'check_circle' : 'error' }}
+        </mat-icon>
+        <span [class.text-warn]="!isFormValid()">
+          {{ isFormValid() ? 'Form is valid' : 'Please fix errors above' }}
+        </span>
       </div>
+
+      <div class="submit-actions">
+        <button type="button" (click)="resetForm()" [disabled]="isSubmitting()" class="cancel-button">
+          <mat-icon>refresh</mat-icon>
+          Reset Form
+        </button>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="!isFormValid() || isSubmitting()" class="submit-button">
+          <mat-icon>save</mat-icon>
+          {{ isSubmitting() ? 'Saving...' : 'Save Checklist' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress bar for submission -->
+    <mat-progress-bar *ngIf="isSubmitting()" mode="indeterminate" class="submit-progress">
+    </mat-progress-bar>
     </form>
+  }
   </div>
 </div>
